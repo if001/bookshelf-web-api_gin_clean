@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/oauth2/google"
 )
 
 func authMiddlewareTest() gin.HandlerFunc {
@@ -21,7 +22,13 @@ func authMiddlewareTest() gin.HandlerFunc {
 func authMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Firebase SDK のセットアップ
-		opt := option.WithCredentialsFile(os.Getenv("FIREBASE_KEYFILE_JSON"))
+		ctx := context.Background()
+		credentials, err := google.CredentialsFromJSON(ctx, []byte(os.Getenv("FIREBASE_KEYFILE_JSON")))
+		if err != nil {
+			fmt.Printf("error: %v\n", err)
+			os.Exit(1)
+		}
+		opt := option.WithCredentials(credentials)
 		// opt := option.WithCredentialsFile("/Users/issei/gcloud_key_json/bookshelf-239408-firebase-adminsdk-ujfj8-61a6ff4292.json")
 		app, err := firebase.NewApp(context.Background(), nil, opt)
 		if err != nil {
