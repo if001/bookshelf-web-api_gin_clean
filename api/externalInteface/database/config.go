@@ -10,10 +10,10 @@ type Config struct {
 }
 
 type DBConf struct {
-	User     string `envconfig:"mysql_user" default:"api"`
-	Password string `envconfig:"mysql_password" default:"hogehoge"`
-	Host     string `envconfig:"mysql_ip" default:"127.0.0.1:3306"`
-	DB       string `envconfig:"mysql_db" default:"bookshelf"`
+	User     string `envconfig:"MYSQL_USER" default:"api"`
+	Password string `envconfig:"MYSQL_PASSWORD" default:"hogehoge"`
+	Host     string `envconfig:"MYSQL_IP" default:"127.0.0.1:3306"`
+	DB       string `envconfig:"MYSQL_DB" default:"bookshelf"`
 }
 
 func LoadConfig() (*Config, error) {
