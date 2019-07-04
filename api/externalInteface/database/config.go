@@ -3,7 +3,6 @@ package database
 import (
 	"github.com/kelseyhightower/envconfig"
 	"os"
-	"fmt"
 )
 
 type Config struct {
@@ -23,9 +22,9 @@ func LoadConfig() (*Config, error) {
 	if err := envconfig.Process("APP", &config); err != nil {
 		return nil, err
 	}
-
-	addr := os.Getenv("APP_MYSQL_PASSWORD")
-	fmt.Println("aa:",addr)
+	
+	config.DB.Password = os.Getenv("APP_MYSQL_PASSWORD")
+	config.DB.Host = os.Getenv("APP_MYSQL_IP")
 
 	return &config, nil
 }
