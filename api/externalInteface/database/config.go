@@ -2,6 +2,7 @@ package database
 
 import (
 	"github.com/kelseyhightower/envconfig"
+	"fmt"
 )
 
 type Config struct {
@@ -21,5 +22,6 @@ func LoadConfig() (*Config, error) {
 	if err := envconfig.Process("APP", &config); err != nil {
 		return nil, err
 	}
+	fmt.Println("aaaa:",config.DB.Host)
 	return &config, nil
 }
