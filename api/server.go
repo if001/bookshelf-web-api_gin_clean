@@ -7,14 +7,14 @@ import (
 )
 
 func main() {
-	var addr string
+	var port string
 
-	addr = os.Getenv("PORT")
-	if addr == "" {
-		addr = "8081"
+	port = os.Getenv("PORT")
+	if port == "" {
+		port = "8081"
 	}
 
-	err := externalInteface.Router().Run(addr)
+	err := externalInteface.Router().Run(fmt.Sprintf(":%v",port))
 	if err != nil {
 		panic(fmt.Errorf("[FAILED] start sever. err: %v", err))
 	}
