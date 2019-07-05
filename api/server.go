@@ -13,7 +13,7 @@ func main() {
 	if port == "" {
 		port = "8081"
 	}
-
+	fmt.Println("aaa:",port)
 	err := externalInteface.Router().Run(fmt.Sprintf(":%v",port))
 	if err != nil {
 		panic(fmt.Errorf("[FAILED] start sever. err: %v", err))
