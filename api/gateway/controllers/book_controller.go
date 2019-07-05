@@ -22,6 +22,7 @@ type BookController interface {
 	GetBook(c *gin.Context)
 	CreateBook(c *gin.Context)
 	ChangeBookStatus(c *gin.Context)
+	DeleteBook(c *gin.Context)
 }
 
 func NewBookController(dbConnection repositories.DBConnection) BookController {
@@ -62,7 +63,7 @@ func (b *bookController) GetAllBooks(c *gin.Context) {
 	accountId, ok := c.MustGet("account_id").(string)
 	if !ok {
 		log.Println("GetBook: ", errors.New("accountId parser error"))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusNotFound)})
+		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
 		return
 	}
 	usecases.ByAccountId(filter, accountId)
@@ -107,7 +108,7 @@ func (b *bookController) GetBook(c *gin.Context) {
 	accountId, ok := c.MustGet("account_id").(string)
 	if !ok {
 		log.Println("GetBook: ", errors.New("accountId parser error"))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusNotFound)})
+		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
 		return
 	}
 
@@ -118,13 +119,13 @@ func (b *bookController) GetBook(c *gin.Context) {
 	book, err := b.UseCase.GetBook(filter)
 	if err != nil {
 		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusNotFound)})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: book})
 }
 
-func (b *bookController) CreateBook(c *gin.Context) {
+func (b *bookController) CreateBook (c *gin.Context) {
 	form := BookForm{}
 	err := c.ShouldBind(&form)
 	if err != nil {
@@ -135,8 +136,8 @@ func (b *bookController) CreateBook(c *gin.Context) {
 
 	accountId, ok := c.MustGet("account_id").(string)
 	if !ok {
-		log.Println("StartReadBook: ", errors.New("accountId parser error"))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusNotFound)})
+		log.Println("CreateBook: ", errors.New("accountId parser error"))
+		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
 		return
 	}
 	book := domain.NewBook()
@@ -147,7 +148,7 @@ func (b *bookController) CreateBook(c *gin.Context) {
 	newBook, err := b.UseCase.CreateBook(book)
 	if err != nil {
 		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusNotFound)})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: newBook})
@@ -156,14 +157,14 @@ func (b *bookController) CreateBook(c *gin.Context) {
 func (b *bookController) ChangeBookStatus(c *gin.Context) {
 	bookId, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		log.Println("StartReadBook: ", err.Error())
+		log.Println("ChangeBookStatus: ", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
 		return
 	}
 	accountId, ok := c.MustGet("account_id").(string)
 	if !ok {
-		log.Println("StartReadBook: ", errors.New("accountId parser error"))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusNotFound)})
+		log.Println("ChangeBookStatus: ", errors.New("accountId parser error"))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
 		return
 	}
 	filter := usecases.NewFilter()
@@ -173,7 +174,33 @@ func (b *bookController) ChangeBookStatus(c *gin.Context) {
 	err = b.UseCase.ChangeStatus(filter)
 	if err != nil {
 		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusNotFound)})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
+func (b *bookController) DeleteBook(c *gin.Context) {
+	bookId, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		log.Println("DeleteBook: ", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		return
+	}
+	accountId, ok := c.MustGet("account_id").(string)
+	if !ok {
+		log.Println("DeleteBook: ", errors.New("accountId parser error"))
+		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		return
+	}
+	bookFilter := usecases.NewFilter()
+	usecases.ById(bookFilter, bookId)
+	usecases.ByAccountId(bookFilter, accountId)
+
+	err = b.UseCase.DeleteBook(bookFilter)
+	if err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
 		return
 	}
 	c.Status(http.StatusOK)

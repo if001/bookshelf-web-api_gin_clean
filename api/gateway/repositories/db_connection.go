@@ -12,5 +12,7 @@ type DBConnection interface {
 	SortAsc(key string) DBConnection
 	Count(count *int64) DBConnection
 	Table(table interface{}) DBConnection
+	TX() DBConnection
+	TxRollback() error
 	HasError() error
 }

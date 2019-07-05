@@ -56,6 +56,13 @@ func (conn *dbConnection) Table(table interface{}) repositories.DBConnection {
 	return &dbConnection{DB: conn.DB.Model(table)}
 }
 
+func  (conn *dbConnection) TX() repositories.DBConnection {
+	return &dbConnection{DB: conn.DB.Begin()}
+}
+
+func (conn *dbConnection) TxRollback() error {
+	return conn.DB.Rollback().Error
+}
 func (conn *dbConnection) HasError() error {
 	return conn.DB.Error
 }

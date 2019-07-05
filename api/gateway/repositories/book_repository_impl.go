@@ -5,6 +5,7 @@ import (
 	"bookshelf-web-api_gin_clean/api/usecases"
 	"time"
 	"fmt"
+	"errors"
 )
 
 type BookRepository struct {
@@ -148,7 +149,43 @@ func (b *BookRepository) Create(book domain.Book) (*domain.Book, error) {
 	return &newBook, nil
 }
 
-func (b *BookRepository) Delete(filter map[string]interface{}) error {
+func (b *BookRepository) Delete(filter map[string]interface{}) (err error) {
+	var bookTable = BookTable{}
+	err = b.Connection.Select(filter).Bind(&bookTable).HasError()
+	if err != nil {
+		return
+	}
+	var descriptionsTable = domain.Descriptions{}
+	m := map[string]interface{}{"book_id":bookTable.ID}
+	err = b.Connection.Select(m).Bind(descriptionsTable).HasError()
+	if err != nil {
+		return err
+	}
+
+	tx := b.Connection.TX()
+	defer func() {
+		rcv := recover()
+		if rcv != nil {
+			err = tx.TxRollback()
+			if err == nil {
+				err = errors.New("in recover: "+rcv.(string))
+			}
+		}
+	}()
+	for _,v := range descriptionsTable {
+		err = tx.Delete(v).HasError()
+		if err != nil {
+			err = tx.TxRollback()
+			return
+		}
+	}
+
+	err = tx.Delete(bookTable).HasError()
+	if err != nil {
+		err = tx.TxRollback()
+		return
+	}
+
 	return nil
 }
 
