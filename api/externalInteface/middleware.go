@@ -23,21 +23,27 @@ func authMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Firebase SDK のセットアップ
 		ctx := context.Background()
-		credentials, err := google.CredentialsFromJSON(ctx, []byte(os.Getenv("FIREBASE_KEYFILE_JSON")))
-		if err != nil {
-			fmt.Printf("error: %v\n", err)
-			os.Exit(1)
+		authKey := os.Getenv("FIREBASE_KEYFILE_JSON")
+		var opt option.ClientOption
+		if authKey == "" {
+			opt = option.WithCredentialsFile("/Users/issei/gcloud_key_json/bookshelf-239408-firebase-adminsdk-ujfj8-61a6ff4292.json")
+		} else {
+			credentials, err := google.CredentialsFromJSON(ctx, []byte(os.Getenv("FIREBASE_KEYFILE_JSON")))
+			if err != nil {
+				fmt.Printf("authMiddleware: %v\n", err)
+				os.Exit(1)
+			}
+			opt = option.WithCredentials(credentials)
 		}
-		opt := option.WithCredentials(credentials)
-		// opt := option.WithCredentialsFile("/Users/issei/gcloud_key_json/bookshelf-239408-firebase-adminsdk-ujfj8-61a6ff4292.json")
+
 		app, err := firebase.NewApp(context.Background(), nil, opt)
 		if err != nil {
-			fmt.Printf("error: %v\n", err)
+			fmt.Printf("authMiddleware: %v\n", err)
 			os.Exit(1)
 		}
 		auth, err := app.Auth(context.Background())
 		if err != nil {
-			fmt.Printf("error: %v\n", err)
+			fmt.Printf("authMiddleware: %v\n", err)
 			os.Exit(1)
 		}
 
@@ -53,6 +59,7 @@ func authMiddleware() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
+		fmt.Println("eeeeeeeeeeee")
 		log.Printf("Verified ID token: %v\n", token)
 		c.Set("account_id", token.UID)
 		c.Next()
