@@ -20,6 +20,7 @@ func Router() *gin.Engine {
 	router.POST("/books", b.CreateBook)
 
 	router.GET("/book/:id", b.GetBook)
+	router.DELETE("/book/:id", b.DeleteBook)
 
 	router.PUT("/book/:id/state/start", b.ChangeBookStatus)
 	router.PUT("/book/:id/state/end", b.ChangeBookStatus)

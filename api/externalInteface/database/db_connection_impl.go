@@ -63,6 +63,11 @@ func  (conn *dbConnection) TX() repositories.DBConnection {
 func (conn *dbConnection) TxRollback() error {
 	return conn.DB.Rollback().Error
 }
+
+func (conn *dbConnection) TxExec() error {
+	return conn.DB.Commit().Error
+}
+
 func (conn *dbConnection) HasError() error {
 	return conn.DB.Error
 }

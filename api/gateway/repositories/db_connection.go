@@ -14,5 +14,6 @@ type DBConnection interface {
 	Table(table interface{}) DBConnection
 	TX() DBConnection
 	TxRollback() error
+	TxExec() error
 	HasError() error
 }

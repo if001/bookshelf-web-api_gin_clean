@@ -156,23 +156,23 @@ func (b *BookRepository) Delete(filter map[string]interface{}) (err error) {
 		return
 	}
 	var descriptionsTable = domain.Descriptions{}
-	m := map[string]interface{}{"book_id":bookTable.ID}
-	err = b.Connection.Select(m).Bind(descriptionsTable).HasError()
+	m := map[string]interface{}{"book_id": bookTable.ID}
+	err = b.Connection.Select(m).Bind(&descriptionsTable).HasError()
 	if err != nil {
 		return err
 	}
-
 	tx := b.Connection.TX()
 	defer func() {
 		rcv := recover()
 		if rcv != nil {
 			err = tx.TxRollback()
 			if err == nil {
-				err = errors.New("in recover: "+rcv.(string))
+				err = errors.New("in recover: " + rcv.(string))
 			}
 		}
 	}()
-	for _,v := range descriptionsTable {
+
+	for _, v := range descriptionsTable {
 		err = tx.Delete(v).HasError()
 		if err != nil {
 			err = tx.TxRollback()
@@ -181,6 +181,12 @@ func (b *BookRepository) Delete(filter map[string]interface{}) (err error) {
 	}
 
 	err = tx.Delete(bookTable).HasError()
+	if err != nil {
+		err = tx.TxRollback()
+		return
+	}
+
+	err = tx.TxExec()
 	if err != nil {
 		err = tx.TxRollback()
 		return
