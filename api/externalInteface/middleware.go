@@ -59,7 +59,7 @@ func authMiddleware() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
-		fmt.Println("eeeeeeeeeeee")
+
 		log.Printf("Verified ID token: %v\n", token)
 		c.Set("account_id", token.UID)
 		c.Next()
