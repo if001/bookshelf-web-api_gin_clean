@@ -80,8 +80,10 @@ func (b *BookRepository) FindAll(filter map[string]interface{}, page uint64, per
 	}
 	if sortKey == "" {
 		query = query.SortDesc("updated_at")
-	} else {
+	} else if sortKey == "title" {
 		query = query.SortAsc(sortKey)
+	} else {
+		query = query.SortDesc(sortKey)
 	}
 
 	err := query.Bind(&bookTables).HasError()

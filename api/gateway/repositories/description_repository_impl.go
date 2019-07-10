@@ -1,10 +1,11 @@
 package repositories
 
-
 import (
 	"bookshelf-web-api_gin_clean/api/usecases"
 	"bookshelf-web-api_gin_clean/api/domain"
 	"fmt"
+	"errors"
+	"time"
 )
 
 type DescriptionRepository struct {
@@ -20,12 +21,12 @@ func (d *DescriptionRepository) FindAll(filter map[string]interface{}, page uint
 	if page > 0 && perPage > 0 {
 		err := d.Connection.Select(filter).Paginate(page, perPage).Bind(&descriptions).HasError()
 		if err != nil {
-			return nil, fmt.Errorf("FindAll: %s",err)
+			return nil, fmt.Errorf("FindAll: %s", err)
 		}
 	} else {
 		err := d.Connection.Select(filter).Bind(&descriptions).HasError()
 		if err != nil {
-			return nil, fmt.Errorf("FindAll: %s",err)
+			return nil, fmt.Errorf("FindAll: %s", err)
 		}
 	}
 	return &descriptions, nil
@@ -35,10 +36,43 @@ func (d *DescriptionRepository) Find(filter map[string]interface{}) (*domain.Des
 	return nil, nil
 }
 
-func (d *DescriptionRepository) Create(description domain.Description) (*domain.Description, error) {
-	err := d.Connection.Create(&description).HasError()
+func (d *DescriptionRepository) Create(description domain.Description) (desc *domain.Description, err error) {
+	tx := d.Connection.TX()
+	defer func() {
+		rcv := recover()
+		if rcv != nil {
+			err := tx.TxRollback()
+			if err == nil {
+				err = errors.New("in recover: " + rcv.(string))
+			}
+		}
+	}()
+	
+	err = tx.Create(&description).HasError()
 	if err != nil {
-		return nil, fmt.Errorf("description create: %s",err)
+		err = fmt.Errorf("description create: %s", err)
+		return
+	}
+
+	book := domain.Book{}
+	filter := map[string]interface{}{"id": description.BookId}
+	err = tx.Select(filter).Bind(&book).HasError()
+	if err != nil {
+		err = fmt.Errorf("description create: %s", err)
+		return
+	}
+
+	book.UpdatedAt = time.Now()
+	err = tx.Update(&book).HasError()
+	if err != nil {
+		err = fmt.Errorf("description create: %s", err)
+		return
+	}
+
+	err = tx.TxExec()
+	if err != nil {
+		err = fmt.Errorf("description create: %s", err)
+		return
 	}
 	return &description, nil
 }
