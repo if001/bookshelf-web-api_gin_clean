@@ -32,6 +32,7 @@ func Router() *gin.Engine {
 	router.DELETE("/description/:id", d.DeleteDescription)
 
 	router.GET("/counted_authors", a.GetCountedAuthors)
+	router.POST("/author", a.CreateAuthor)
 
 	return router
 }

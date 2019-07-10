@@ -7,6 +7,7 @@ type authorUseCase struct {
 }
 type AuthorUseCase interface {
 	GetAllAuthor() (*domain.CountedAuthors, error)
+	CreateAuthor(createAuthor domain.Author) (*domain.Author, error)
 }
 
 func NewAuthorUseCase(authorRepo AuthorRepository) AuthorUseCase {
@@ -19,4 +20,12 @@ func (a *authorUseCase) GetAllAuthor() (*domain.CountedAuthors, error) {
 		return nil, err
 	}
 	return authors, nil
+}
+
+func (a *authorUseCase) CreateAuthor(createAuthor domain.Author) (*domain.Author, error) {
+	author, err := a.AuthorRepo.Create(createAuthor)
+	if err != nil {
+		return nil, err
+	}
+	return author, nil
 }

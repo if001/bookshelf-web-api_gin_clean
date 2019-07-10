@@ -35,7 +35,6 @@ func NewBookController(dbConnection repositories.DBConnection) BookController {
 type BookForm struct {
 	Title      string  `json:"title" binding:"required"`
 	AuthorID   uint64  `json:"author_id"`
-	AuthorName *string `json:"author_name"`
 }
 
 type BookUpdateForm struct {
@@ -151,6 +150,10 @@ func (b *bookController) CreateBook(c *gin.Context) {
 	book := domain.NewBook()
 	book.Title = form.Title
 	book.AccountID = accountId
+	author := domain.Author{}
+	author.ID = form.AuthorID
+	book.Author = &author
+	
 	book.ReadState = domain.NotReadValue
 
 	newBook, err := b.UseCase.CreateBook(book)
