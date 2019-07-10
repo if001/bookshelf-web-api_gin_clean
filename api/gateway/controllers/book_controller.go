@@ -23,6 +23,7 @@ type BookController interface {
 	CreateBook(c *gin.Context)
 	ChangeBookStatus(c *gin.Context)
 	DeleteBook(c *gin.Context)
+	UpdateBook(c *gin.Context)
 }
 
 func NewBookController(dbConnection repositories.DBConnection) BookController {
@@ -32,6 +33,13 @@ func NewBookController(dbConnection repositories.DBConnection) BookController {
 }
 
 type BookForm struct {
+	Title      string  `json:"title" binding:"required"`
+	AuthorID   uint64  `json:"author_id"`
+	AuthorName *string `json:"author_name"`
+}
+
+type BookUpdateForm struct {
+	ID         uint64  `json:"id" binding:"required"`
 	Title      string  `json:"title" binding:"required"`
 	AuthorID   uint64  `json:"author_id"`
 	AuthorName *string `json:"author_name"`
@@ -125,7 +133,7 @@ func (b *bookController) GetBook(c *gin.Context) {
 	c.JSON(http.StatusOK, Response{Content: book})
 }
 
-func (b *bookController) CreateBook (c *gin.Context) {
+func (b *bookController) CreateBook(c *gin.Context) {
 	form := BookForm{}
 	err := c.ShouldBind(&form)
 	if err != nil {
@@ -204,4 +212,40 @@ func (b *bookController) DeleteBook(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusOK)
+}
+
+func (b *bookController) UpdateBook(c *gin.Context) {
+	form := BookUpdateForm{}
+	err := c.ShouldBind(&form)
+	if err != nil {
+		log.Println("UpdateBook: ", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		return
+	}
+	accountId, ok := c.MustGet("account_id").(string)
+	if !ok {
+		log.Println("UpdateBook: ", errors.New("accountId parser error"))
+		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		return
+	}
+
+	filter := usecases.NewFilter()
+	usecases.ByAccountId(filter, accountId)
+	usecases.ById(filter, form.ID)
+	book, err := b.UseCase.GetBook(filter)
+	if err != nil {
+		log.Println("UpdateBook: ", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		return
+	}
+
+	book.Title = form.Title
+
+	updatedBook, err := b.UseCase.UpdateBook(*book, nil)
+	if err != nil {
+		log.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
+		return
+	}
+	c.JSON(http.StatusOK, Response{Content: updatedBook})
 }

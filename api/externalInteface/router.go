@@ -18,6 +18,7 @@ func Router() *gin.Engine {
 
 	router.GET("/books", b.GetAllBooks)
 	router.POST("/books", b.CreateBook)
+	router.PUT("/books", b.UpdateBook)
 
 	router.GET("/book/:id", b.GetBook)
 	router.DELETE("/book/:id", b.DeleteBook)

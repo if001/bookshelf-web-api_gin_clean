@@ -9,5 +9,6 @@ type BookRepository interface {
 	Find(filter map[string]interface{}) (*domain.Book, error)
 	Create(book domain.Book) (*domain.Book, error)
 	Delete(filter map[string]interface{}) error
-	Store(book domain.Book, filter map[string]interface{}) error
+	Store(book domain.Book) error
+	UpdateUpdatedAt(filter map[string]interface{}) error
 }

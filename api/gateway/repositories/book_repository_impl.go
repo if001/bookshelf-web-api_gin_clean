@@ -195,8 +195,22 @@ func (b *BookRepository) Delete(filter map[string]interface{}) (err error) {
 	return nil
 }
 
-func (b *BookRepository) Store(book domain.Book, filter map[string]interface{}) error {
+func (b *BookRepository) Store(book domain.Book) error {
 	t := ToTable(book)
 	t.UpdatedAt = time.Now()
 	return b.Connection.Update(t).HasError()
+}
+
+func (b *BookRepository) UpdateUpdatedAt(filter map[string]interface{}) error {
+	var bookTable = BookTable{}
+	err := b.Connection.Select(filter).Bind(&bookTable).HasError()
+	if err != nil {
+		return err
+	}
+	if bookTable.ID == 0 {
+		return errors.New("Store:TableNotFound")
+	}
+
+	bookTable.UpdatedAt = time.Now()
+	return b.Connection.Update(bookTable).HasError()
 }

@@ -11,7 +11,7 @@ type bookUseCase struct {
 type BookUseCase interface {
 	GetAllBooks(filter map[string]interface{}, page, parPage uint64, sortKey string) (*domain.PaginateBooks, error) // TODO paging
 	GetBook(filter map[string]interface{}) (*domain.Book, error)
-	UpdateBook(updateBook domain.Book, filter map[string]interface{}) error
+	UpdateBook(updateBook domain.Book, filter map[string]interface{}) (*domain.Book, error)
 	CreateBook(createBook domain.Book) (*domain.Book, error)
 	DeleteBook(filter map[string]interface{}) (error)
 
@@ -42,12 +42,12 @@ func (b *bookUseCase) GetBook(filter map[string]interface{}) (*domain.Book, erro
 	return book, nil
 }
 
-func (b *bookUseCase) UpdateBook(updateBook domain.Book, filter map[string]interface{}) (error) {
-	err := b.BookRepo.Store(updateBook, filter)
+func (b *bookUseCase) UpdateBook(updateBook domain.Book, filter map[string]interface{}) (*domain.Book, error) {
+	err := b.BookRepo.Store(updateBook)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return nil, nil
 }
 
 func (b *bookUseCase) CreateBook(createBook domain.Book) (*domain.Book, error) {
@@ -83,7 +83,7 @@ func (b *bookUseCase) ChangeStatus(filter map[string]interface{}) (error) {
 	default:
 		return errors.New("ChangeStatus: bad status")
 	}
-	err = b.BookRepo.Store(*book, filter)
+	err = b.BookRepo.Store(*book)
 	if err != nil {
 		return err
 	}

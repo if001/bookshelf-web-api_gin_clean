@@ -33,6 +33,7 @@ func (b *descriptionUseCase) GetDescription(filter map[string]interface{}) (*dom
 	}
 	return description, nil
 }
+
 func (b *descriptionUseCase) CreateDescription(createDescription domain.Description) (*domain.Description, error) {
 	newDescription, err := b.DescriptionRepo.Create(createDescription)
 	if err != nil {
@@ -40,6 +41,7 @@ func (b *descriptionUseCase) CreateDescription(createDescription domain.Descript
 	}
 	return newDescription, nil
 }
+
 func (b *descriptionUseCase) UpdateDescription(updateBook domain.Description, filter map[string]interface{}) (error) {
 	return nil
 }
