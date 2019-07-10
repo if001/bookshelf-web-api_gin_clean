@@ -75,7 +75,7 @@ func(conn *dbConnection) CountedAuthorQuery(bind interface{}) error {
 		Group("author.id").
 		Select("author.id, author.name, author.created_at, author.updated_at, count(*) as count").
 		Count(&count).
-		Having("count >? ",1).
+		Having("count >? ",0).
 		Having("author.id is not NULL").
 		Find(bind).
 		Error
