@@ -68,6 +68,19 @@ func (conn *dbConnection) TxExec() error {
 	return conn.DB.Commit().Error
 }
 
+func(conn *dbConnection) CountedAuthorQuery(bind interface{}) error {
+	count := 0
+	return conn.DB.Table("books").
+		Joins("left join author on books.author_id = author.id").
+		Group("author.id").
+		Select("author.id, author.name, author.created_at, author.updated_at, count(*) as count").
+		Count(&count).
+		Having("count >? ",1).
+		Having("author.id is not NULL").
+		Find(bind).
+		Error
+}
+
 func (conn *dbConnection) HasError() error {
 	return conn.DB.Error
 }

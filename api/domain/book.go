@@ -86,6 +86,13 @@ func (a Authors) FindById(id uint64) *Author {
 	return nil
 }
 
+type CountedAuthor struct {
+	Author
+	Count int64  `json:"count"`
+}
+
+type CountedAuthors []CountedAuthor
+
 type Description struct {
 	Base
 	BookId  uint64 `json:"book_id"`
