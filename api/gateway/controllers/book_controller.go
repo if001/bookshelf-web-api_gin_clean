@@ -41,7 +41,6 @@ type BookUpdateForm struct {
 	ID         uint64  `json:"id" binding:"required"`
 	Title      string  `json:"title" binding:"required"`
 	AuthorID   uint64  `json:"author_id"`
-	AuthorName *string `json:"author_name"`
 }
 
 type Response struct {
@@ -243,6 +242,9 @@ func (b *bookController) UpdateBook(c *gin.Context) {
 	}
 
 	book.Title = form.Title
+	author := domain.Author{}
+	author.ID = form.AuthorID
+	book.Author = &author
 
 	updatedBook, err := b.UseCase.UpdateBook(*book, nil)
 	if err != nil {
