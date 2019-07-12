@@ -18,16 +18,17 @@ func NewDescriptionRepository(conn DBConnection) usecases.DescriptionRepository 
 
 func (d *DescriptionRepository) FindAll(filter map[string]interface{}, page uint64, perPage uint64) (*domain.Descriptions, error) {
 	var descriptions = make(domain.Descriptions, 0)
+	query := d.Connection.Select(filter)
+
 	if page > 0 && perPage > 0 {
-		err := d.Connection.Select(filter).Paginate(page, perPage).Bind(&descriptions).HasError()
-		if err != nil {
-			return nil, fmt.Errorf("FindAll: %s", err)
-		}
+		query = query.Paginate(page, perPage)
 	} else {
-		err := d.Connection.Select(filter).Bind(&descriptions).HasError()
-		if err != nil {
-			return nil, fmt.Errorf("FindAll: %s", err)
-		}
+		query = d.Connection.Select(filter)
+	}
+
+	err := query.SortDesc("updated_at").Bind(&descriptions).HasError()
+	if err != nil {
+		return nil, fmt.Errorf("FindAll: %s", err)
 	}
 	return &descriptions, nil
 }
