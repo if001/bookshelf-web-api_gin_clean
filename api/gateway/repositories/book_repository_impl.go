@@ -22,6 +22,7 @@ type BookTable struct {
 	Title          string
 	AccountID      string
 	AuthorID       *uint64
+	PublisherID    *uint64
 	StartAt        domain.NullTime
 	EndAt          domain.NullTime
 	ReadState      domain.ReadState
@@ -37,6 +38,7 @@ func (b *BookTable) ToModel() domain.Book {
 		AccountID: b.AccountID,
 		Title:     b.Title,
 		Author:    nil,
+		Publisher: nil,
 		StartAt:   b.StartAt,
 		EndAt:     b.EndAt,
 		ReadState: b.ReadState,
@@ -54,13 +56,19 @@ func ToTable(b domain.Book) BookTable {
 	if b.Author != nil {
 		authorID = &b.Author.ID
 	}
+	var publisherID *uint64 = nil
+	if b.Publisher != nil {
+		publisherID = &b.Publisher.ID
+	}
+
 	t := BookTable{
-		Title:     b.Title,
-		AccountID: b.AccountID,
-		AuthorID:  authorID,
-		StartAt:   b.StartAt,
-		EndAt:     b.EndAt,
-		ReadState: b.ReadState,
+		Title:       b.Title,
+		AccountID:   b.AccountID,
+		AuthorID:    authorID,
+		PublisherID: publisherID,
+		StartAt:     b.StartAt,
+		EndAt:       b.EndAt,
+		ReadState:   b.ReadState,
 	}
 	t.ID = b.ID
 	t.SmallImageUrl = b.SmallImageUrl
@@ -97,7 +105,7 @@ func (b *BookRepository) FindAll(filter map[string]interface{}, page uint64, per
 	if err != nil {
 		return nil, fmt.Errorf("FindAll: %s", err)
 	}
-	var authorTables = domain.Authors{}
+	authorTables := domain.Authors{}
 	cc := b.Connection
 	for _, v := range bookTables {
 		cc.OrFilter(map[string]interface{}{"author_id": v.AuthorID})
@@ -106,6 +114,18 @@ func (b *BookRepository) FindAll(filter map[string]interface{}, page uint64, per
 	if err != nil {
 		return nil, fmt.Errorf("FindAll: %s", err)
 	}
+
+	publisherTables := domain.Publishers{}
+	pc := b.Connection
+	for _, v := range bookTables {
+		pc.OrFilter(map[string]interface{}{"publisher_id": v.PublisherID})
+	}
+	err = cc.Bind(&publisherTables).HasError()
+	if err != nil {
+		return nil, fmt.Errorf("FindAll: %s", err)
+	}
+
+
 	books := domain.Books{}
 	for _, v := range bookTables {
 		b := v.ToModel()
@@ -114,6 +134,12 @@ func (b *BookRepository) FindAll(filter map[string]interface{}, page uint64, per
 			b.Author = author
 		} else {
 			b.Author = nil
+		}
+		if v.PublisherID != nil {
+			publisher := publisherTables.FindById(*v.PublisherID)
+			b.Publisher = publisher
+		} else {
+			b.Publisher = nil
 		}
 		books = append(books, b)
 	}
@@ -137,14 +163,25 @@ func (b *BookRepository) Find(filter map[string]interface{}) (*domain.Book, erro
 	if bookTable.AuthorID == nil {
 		return &book, nil
 	}
-	var authorTable = domain.Author{}
+	authorTable := domain.Author{}
 	authorFilter := map[string]interface{}{"id": bookTable.AuthorID}
-
 	err = b.Connection.Select(authorFilter).Bind(&authorTable).HasError()
 	if err != nil {
 		return nil, err
 	}
 	book.Author = &authorTable
+
+	if bookTable.PublisherID == nil {
+		return &book, nil
+	}
+	publisherTable := domain.Publisher{}
+	publisherFilter := map[string]interface{}{"id": bookTable.PublisherID}
+	err = b.Connection.Select(publisherFilter).Bind(&publisherTable).HasError()
+	if err != nil {
+		return nil, err
+	}
+	book.Publisher = &publisherTable
+
 	return &book, nil
 }
 

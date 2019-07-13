@@ -6,11 +6,11 @@ import (
 	"bookshelf-web-api_gin_clean/api/gateway/repositories"
 	"bookshelf-web-api_gin_clean/api/usecases"
 
-	"github.com/gin-gonic/gin"
-	"strconv"
-	"log"
-	"errors"
 	"bookshelf-web-api_gin_clean/api/domain"
+	"errors"
+	"github.com/gin-gonic/gin"
+	"log"
+	"strconv"
 )
 
 type bookController struct {
@@ -34,7 +34,8 @@ func NewBookController(dbConnection repositories.DBConnection) BookController {
 
 type BookForm struct {
 	Title          string  `json:"title" binding:"required"`
-	AuthorID       uint64  `json:"author_id"`
+	AuthorID       *uint64 `json:"author_id"`
+	PublisherID    *uint64 `json:"publisher_id"`
 	SmallImageUrl  *string `json:"small_image_url"`
 	MediumImageUrl *string `json:"medium_image_url"`
 }
@@ -42,7 +43,8 @@ type BookForm struct {
 type BookUpdateForm struct {
 	ID             uint64  `json:"id" binding:"required"`
 	Title          string  `json:"title" binding:"required"`
-	AuthorID       uint64  `json:"author_id"`
+	AuthorID       *uint64 `json:"author_id"`
+	PublisherID    *uint64 `json:"publisher_id"`
 	SmallImageUrl  *string `json:"small_image_url"`
 	MediumImageUrl *string `json:"medium_image_url"`
 }
@@ -104,7 +106,6 @@ func (b *bookController) GetAllBooks(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusInternalServerError})
 		return
 	}
-
 	c.JSON(http.StatusOK, Response{Content: books})
 }
 
@@ -154,8 +155,13 @@ func (b *bookController) CreateBook(c *gin.Context) {
 	book.Title = form.Title
 	book.AccountID = accountId
 	author := domain.Author{}
-	author.ID = form.AuthorID
+	author.ID = *form.AuthorID
 	book.Author = &author
+
+	publisher := domain.Publisher{}
+	publisher.ID = *form.PublisherID
+	book.Publisher = &publisher
+
 	book.SmallImageUrl = form.SmallImageUrl
 	book.MediumImageUrl = form.MediumImageUrl
 
@@ -249,12 +255,15 @@ func (b *bookController) UpdateBook(c *gin.Context) {
 
 	book.Title = form.Title
 	author := domain.Author{}
-	author.ID = form.AuthorID
+	author.ID = *form.AuthorID
 	book.Author = &author
+
+	publisher := domain.Publisher{}
+	publisher.ID = *form.PublisherID
+	book.Publisher = &publisher
 
 	book.SmallImageUrl = form.SmallImageUrl
 	book.MediumImageUrl = form.MediumImageUrl
-
 
 	updatedBook, err := b.UseCase.UpdateBook(*book, nil)
 	if err != nil {

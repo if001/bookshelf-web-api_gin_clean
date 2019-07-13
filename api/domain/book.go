@@ -10,12 +10,13 @@ type Book struct {
 	AccountID      string       `json:"account_id"`
 	Title          string       `json:"title"`
 	Author         *Author      `json:"author"`
+	Publisher      *Publisher   `json:"publisher"`
 	StartAt        NullTime     `json:"start_at"`
 	EndAt          NullTime     `json:"end_at"`
 	ReadState      ReadState    `json:"read_state"`
 	Descriptions   Descriptions `json:"descriptions"`
-	SmallImageUrl  *string       `json:"small_image_url"`
-	MediumImageUrl *string       `json:"medium_image_url"`
+	SmallImageUrl  *string      `json:"small_image_url"`
+	MediumImageUrl *string      `json:"medium_image_url"`
 }
 
 type Books []Book
@@ -26,6 +27,7 @@ func NewBook() Book {
 	b.Title = ""
 	b.AccountID = ""
 	b.Author = nil
+	b.Publisher = nil
 	b.StartAt = NullTime{mysql.NullTime{Time: time.Now(), Valid: false}}
 	b.EndAt = NullTime{mysql.NullTime{Time: time.Now(), Valid: false}}
 	b.UpdatedAt = time.Now()
@@ -108,3 +110,30 @@ func (Description) TableName() string {
 }
 
 type Descriptions []Description
+
+type Publisher struct {
+	Base
+	Name string `json:"name"`
+}
+
+func (Publisher) TableName() string {
+	return "publisher"
+}
+
+type Publishers []Publisher
+
+func (p Publishers) FindById(id uint64) *Publisher {
+	for _, v := range p {
+		if v.ID == id {
+			return &v
+		}
+	}
+	return nil
+}
+
+type CountedPublisher struct {
+	Publisher
+	Count int64 `json:"count"`
+}
+
+type CountedPublishers []CountedPublisher

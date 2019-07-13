@@ -16,6 +16,7 @@ func Router() *gin.Engine {
 	b := controllers.NewBookController(&conn)
 	d := controllers.NewDescriptionController(&conn)
 	a := controllers.NewAuthorController(&conn)
+	p := controllers.NewPublisherController(&conn)
 
 	router.GET("/books", b.GetAllBooks)
 	router.POST("/books", b.CreateBook)
@@ -33,6 +34,9 @@ func Router() *gin.Engine {
 
 	router.GET("/counted_authors", a.GetCountedAuthors)
 	router.POST("/author", a.CreateAuthor)
+
+	router.GET("/counted_publisher", p.GetCountedPublishers)
+	router.POST("/publisher", p.CreatePublisher)
 
 	return router
 }

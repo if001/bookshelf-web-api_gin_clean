@@ -16,5 +16,6 @@ type DBConnection interface {
 	TxRollback() error
 	TxExec() error
 	CountedAuthorQuery(bind interface{}) error
+	CountedPublisherQuery(bind interface{}) error
 	HasError() error
 }

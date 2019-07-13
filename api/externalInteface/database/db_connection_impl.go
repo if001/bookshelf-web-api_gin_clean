@@ -56,7 +56,7 @@ func (conn *dbConnection) Table(table interface{}) repositories.DBConnection {
 	return &dbConnection{DB: conn.DB.Model(table)}
 }
 
-func  (conn *dbConnection) TX() repositories.DBConnection {
+func (conn *dbConnection) TX() repositories.DBConnection {
 	return &dbConnection{DB: conn.DB.Begin()}
 }
 
@@ -68,15 +68,28 @@ func (conn *dbConnection) TxExec() error {
 	return conn.DB.Commit().Error
 }
 
-func(conn *dbConnection) CountedAuthorQuery(bind interface{}) error {
+func (conn *dbConnection) CountedAuthorQuery(bind interface{}) error {
 	count := 0
 	return conn.DB.Table("author").
 		Joins("left join books on books.author_id = author.id").
 		Group("author.id").
 		Select("author.id, author.name, author.created_at, author.updated_at, count(*) as count").
 		Count(&count).
-		Having("count >? ",0).
+		Having("count >? ", 0).
 		Having("author.id is not NULL").
+		Find(bind).
+		Error
+}
+
+func (conn *dbConnection) CountedPublisherQuery(bind interface{}) error {
+	count := 0
+	return conn.DB.Table("publisher").
+		Joins("left join books on books.publisher_id = publisher.id").
+		Group("publisher.id").
+		Select("publisher.id, publisher.name, publisher.created_at, publisher.updated_at, count(*) as count").
+		Count(&count).
+		Having("count >? ", 0).
+		Having("publisher.id is not NULL").
 		Find(bind).
 		Error
 }
