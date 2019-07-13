@@ -7,13 +7,15 @@ import (
 
 type Book struct {
 	Base
-	AccountID    string       `json:"account_id"`
-	Title        string       `json:"title"`
-	Author       *Author      `json:"author"`
-	StartAt      NullTime     `json:"start_at"`
-	EndAt        NullTime     `json:"end_at"`
-	ReadState    ReadState    `json:"read_state"`
-	Descriptions Descriptions `json:"descriptions"`
+	AccountID      string       `json:"account_id"`
+	Title          string       `json:"title"`
+	Author         *Author      `json:"author"`
+	StartAt        NullTime     `json:"start_at"`
+	EndAt          NullTime     `json:"end_at"`
+	ReadState      ReadState    `json:"read_state"`
+	Descriptions   Descriptions `json:"descriptions"`
+	SmallImageUrl  *string       `json:"small_image_url"`
+	MediumImageUrl *string       `json:"medium_image_url"`
 }
 
 type Books []Book
@@ -28,6 +30,8 @@ func NewBook() Book {
 	b.EndAt = NullTime{mysql.NullTime{Time: time.Now(), Valid: false}}
 	b.UpdatedAt = time.Now()
 	b.CreatedAt = time.Now()
+	b.SmallImageUrl = nil
+	b.MediumImageUrl = nil
 	return b
 }
 
@@ -88,7 +92,7 @@ func (a Authors) FindById(id uint64) *Author {
 
 type CountedAuthor struct {
 	Author
-	Count int64  `json:"count"`
+	Count int64 `json:"count"`
 }
 
 type CountedAuthors []CountedAuthor

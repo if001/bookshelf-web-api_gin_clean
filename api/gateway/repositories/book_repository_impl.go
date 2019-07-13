@@ -19,12 +19,14 @@ type Base struct {
 }
 type BookTable struct {
 	Base
-	Title     string
-	AccountID string
-	AuthorID  *uint64
-	StartAt   domain.NullTime
-	EndAt     domain.NullTime
-	ReadState domain.ReadState
+	Title          string
+	AccountID      string
+	AuthorID       *uint64
+	StartAt        domain.NullTime
+	EndAt          domain.NullTime
+	ReadState      domain.ReadState
+	SmallImageUrl  *string
+	MediumImageUrl *string
 }
 
 func (BookTable) TableName() string {
@@ -40,6 +42,9 @@ func (b *BookTable) ToModel() domain.Book {
 		ReadState: b.ReadState,
 	}
 	m.ID = b.ID
+
+	m.SmallImageUrl = b.SmallImageUrl
+	m.MediumImageUrl = b.MediumImageUrl
 	m.CreatedAt = b.CreatedAt
 	m.UpdatedAt = b.UpdatedAt
 	return m
@@ -58,6 +63,8 @@ func ToTable(b domain.Book) BookTable {
 		ReadState: b.ReadState,
 	}
 	t.ID = b.ID
+	t.SmallImageUrl = b.SmallImageUrl
+	t.MediumImageUrl = b.MediumImageUrl
 	t.UpdatedAt = b.UpdatedAt
 	t.CreatedAt = b.CreatedAt
 	return t

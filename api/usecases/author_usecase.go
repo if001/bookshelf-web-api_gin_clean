@@ -1,6 +1,8 @@
 package usecases
 
-import "bookshelf-web-api_gin_clean/api/domain"
+import (
+	"bookshelf-web-api_gin_clean/api/domain"
+)
 
 type authorUseCase struct {
 	AuthorRepo AuthorRepository

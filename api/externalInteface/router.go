@@ -9,8 +9,8 @@ import (
 
 func Router() *gin.Engine {
 	router := gin.Default()
-	//router.Use(Options, authMiddleware())
-	router.Use(Options, authMiddlewareTest())
+	router.Use(Options, authMiddleware())
+	//router.Use(Options, authMiddlewareTest())
 	conn := database.NewSqlConnection()
 
 	b := controllers.NewBookController(&conn)
