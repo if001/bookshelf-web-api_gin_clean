@@ -70,8 +70,8 @@ func (conn *dbConnection) TxExec() error {
 
 func(conn *dbConnection) CountedAuthorQuery(bind interface{}) error {
 	count := 0
-	return conn.DB.Table("books").
-		Joins("left join author on books.author_id = author.id").
+	return conn.DB.Table("author").
+		Joins("left join books on books.author_id = author.id").
 		Group("author.id").
 		Select("author.id, author.name, author.created_at, author.updated_at, count(*) as count").
 		Count(&count).
