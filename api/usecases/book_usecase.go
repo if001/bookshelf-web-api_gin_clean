@@ -13,7 +13,7 @@ type BookUseCase interface {
 	GetBook(filter map[string]interface{}) (*domain.Book, error)
 	UpdateBook(updateBook domain.Book, filter map[string]interface{}) (*domain.Book, error)
 	CreateBook(createBook domain.Book) (*domain.Book, error)
-	DeleteBook(filter map[string]interface{}) (error)
+	DeleteBook(filter map[string]interface{}) error
 
 	ChangeStatus(filter map[string]interface{}) error
 	// StoreCategories() error
