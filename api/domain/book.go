@@ -17,6 +17,8 @@ type Book struct {
 	Descriptions   Descriptions `json:"descriptions"`
 	SmallImageUrl  *string      `json:"small_image_url"`
 	MediumImageUrl *string      `json:"medium_image_url"`
+	ItemUrl        *string      `json:"item_url"`
+	AffiliateUrl   *string      `json:"affiliate_url"`
 }
 
 type Books []Book

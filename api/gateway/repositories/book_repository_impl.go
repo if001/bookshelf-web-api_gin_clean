@@ -28,6 +28,8 @@ type BookTable struct {
 	ReadState      domain.ReadState
 	SmallImageUrl  *string
 	MediumImageUrl *string
+	ItemUrl        *string
+	AffiliateUrl   *string
 }
 
 func (BookTable) TableName() string {
@@ -35,18 +37,19 @@ func (BookTable) TableName() string {
 }
 func (b *BookTable) ToModel() domain.Book {
 	m := domain.Book{
-		AccountID: b.AccountID,
-		Title:     b.Title,
-		Author:    nil,
-		Publisher: nil,
-		StartAt:   b.StartAt,
-		EndAt:     b.EndAt,
-		ReadState: b.ReadState,
+		AccountID:      b.AccountID,
+		Title:          b.Title,
+		Author:         nil,
+		Publisher:      nil,
+		StartAt:        b.StartAt,
+		EndAt:          b.EndAt,
+		ReadState:      b.ReadState,
+		SmallImageUrl:  b.SmallImageUrl,
+		MediumImageUrl: b.MediumImageUrl,
+		ItemUrl:        b.ItemUrl,
+		AffiliateUrl:   b.AffiliateUrl,
 	}
 	m.ID = b.ID
-
-	m.SmallImageUrl = b.SmallImageUrl
-	m.MediumImageUrl = b.MediumImageUrl
 	m.CreatedAt = b.CreatedAt
 	m.UpdatedAt = b.UpdatedAt
 	return m
@@ -69,10 +72,12 @@ func ToTable(b domain.Book) BookTable {
 		StartAt:     b.StartAt,
 		EndAt:       b.EndAt,
 		ReadState:   b.ReadState,
+		SmallImageUrl:  b.SmallImageUrl,
+		MediumImageUrl: b.MediumImageUrl,
+		ItemUrl:        b.ItemUrl,
+		AffiliateUrl:   b.AffiliateUrl,
 	}
 	t.ID = b.ID
-	t.SmallImageUrl = b.SmallImageUrl
-	t.MediumImageUrl = b.MediumImageUrl
 	t.UpdatedAt = b.UpdatedAt
 	t.CreatedAt = b.CreatedAt
 	return t

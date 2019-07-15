@@ -38,6 +38,8 @@ type BookForm struct {
 	PublisherID    *uint64 `json:"publisher_id"`
 	SmallImageUrl  *string `json:"small_image_url"`
 	MediumImageUrl *string `json:"medium_image_url"`
+	ItemUrl        *string `json:"item_url"`
+	AffiliateUrl   *string `json:"affiliate_url"`
 }
 
 type BookUpdateForm struct {
@@ -45,8 +47,6 @@ type BookUpdateForm struct {
 	Title          string  `json:"title" binding:"required"`
 	AuthorID       *uint64 `json:"author_id"`
 	PublisherID    *uint64 `json:"publisher_id"`
-	SmallImageUrl  *string `json:"small_image_url"`
-	MediumImageUrl *string `json:"medium_image_url"`
 }
 
 type Response struct {
@@ -173,7 +173,8 @@ func (b *bookController) CreateBook(c *gin.Context) {
 
 	book.SmallImageUrl = form.SmallImageUrl
 	book.MediumImageUrl = form.MediumImageUrl
-
+	book.ItemUrl = form.ItemUrl
+	book.AffiliateUrl = form.AffiliateUrl
 	book.ReadState = domain.NotReadValue
 
 	newBook, err := b.UseCase.CreateBook(book)
@@ -270,9 +271,6 @@ func (b *bookController) UpdateBook(c *gin.Context) {
 	publisher := domain.Publisher{}
 	publisher.ID = *form.PublisherID
 	book.Publisher = &publisher
-
-	book.SmallImageUrl = form.SmallImageUrl
-	book.MediumImageUrl = form.MediumImageUrl
 
 	updatedBook, err := b.UseCase.UpdateBook(*book, nil)
 	if err != nil {
