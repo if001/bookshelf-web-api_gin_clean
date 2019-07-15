@@ -10,8 +10,8 @@ import (
 )
 
 type PublisherForm struct {
-	// PublisherName string `json:"publisher_name" binding:"required"`
-	PublisherName string `json:"publisher_name"`
+	PublisherName string `json:"publisher_name" binding:"required"`
+	// PublisherName string `json:"publisher_name"`
 }
 
 type publisherController struct {

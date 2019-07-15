@@ -125,7 +125,6 @@ func (b *BookRepository) FindAll(filter map[string]interface{}, page uint64, per
 		return nil, fmt.Errorf("FindAll: %s", err)
 	}
 
-
 	books := domain.Books{}
 	for _, v := range bookTables {
 		b := v.ToModel()
@@ -158,7 +157,6 @@ func (b *BookRepository) Find(filter map[string]interface{}) (*domain.Book, erro
 	if err != nil {
 		return nil, err
 	}
-
 	book := bookTable.ToModel()
 	if bookTable.AuthorID == nil {
 		return &book, nil
@@ -170,7 +168,6 @@ func (b *BookRepository) Find(filter map[string]interface{}) (*domain.Book, erro
 		return nil, err
 	}
 	book.Author = &authorTable
-
 	if bookTable.PublisherID == nil {
 		return &book, nil
 	}

@@ -154,13 +154,22 @@ func (b *bookController) CreateBook(c *gin.Context) {
 	book := domain.NewBook()
 	book.Title = form.Title
 	book.AccountID = accountId
+
 	author := domain.Author{}
-	author.ID = *form.AuthorID
-	book.Author = &author
+	if form.AuthorID != nil {
+		author.ID = *form.AuthorID
+		book.Author = &author
+	} else {
+		book.Author = nil
+	}
 
 	publisher := domain.Publisher{}
-	publisher.ID = *form.PublisherID
-	book.Publisher = &publisher
+	if form.PublisherID != nil {
+		publisher.ID = *form.PublisherID
+		book.Publisher = &publisher
+	} else {
+		book.Publisher = nil
+	}
 
 	book.SmallImageUrl = form.SmallImageUrl
 	book.MediumImageUrl = form.MediumImageUrl
