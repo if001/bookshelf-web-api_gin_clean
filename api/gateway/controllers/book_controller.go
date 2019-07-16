@@ -34,6 +34,7 @@ func NewBookController(dbConnection repositories.DBConnection) BookController {
 
 type BookForm struct {
 	Title          string  `json:"title" binding:"required"`
+	Isbn           *string `json:"isbn"`
 	AuthorID       *uint64 `json:"author_id"`
 	PublisherID    *uint64 `json:"publisher_id"`
 	SmallImageUrl  *string `json:"small_image_url"`
@@ -43,10 +44,10 @@ type BookForm struct {
 }
 
 type BookUpdateForm struct {
-	ID             uint64  `json:"id" binding:"required"`
-	Title          string  `json:"title" binding:"required"`
-	AuthorID       *uint64 `json:"author_id"`
-	PublisherID    *uint64 `json:"publisher_id"`
+	ID          uint64  `json:"id" binding:"required"`
+	Title       string  `json:"title" binding:"required"`
+	AuthorID    *uint64 `json:"author_id"`
+	PublisherID *uint64 `json:"publisher_id"`
 }
 
 type Response struct {
@@ -170,7 +171,7 @@ func (b *bookController) CreateBook(c *gin.Context) {
 	} else {
 		book.Publisher = nil
 	}
-
+	book.Isbn = form.Isbn
 	book.SmallImageUrl = form.SmallImageUrl
 	book.MediumImageUrl = form.MediumImageUrl
 	book.ItemUrl = form.ItemUrl

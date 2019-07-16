@@ -9,6 +9,7 @@ type Book struct {
 	Base
 	AccountID      string       `json:"account_id"`
 	Title          string       `json:"title"`
+	Isbn           *string      `json:"isbn"`
 	Author         *Author      `json:"author"`
 	Publisher      *Publisher   `json:"publisher"`
 	StartAt        NullTime     `json:"start_at"`
@@ -27,6 +28,7 @@ func NewBook() Book {
 	b := Book{}
 	b.ID = 0
 	b.Title = ""
+	b.Isbn = nil
 	b.AccountID = ""
 	b.Author = nil
 	b.Publisher = nil

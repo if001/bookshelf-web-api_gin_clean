@@ -21,6 +21,7 @@ type BookTable struct {
 	Base
 	Title          string
 	AccountID      string
+	Isbn           *string
 	AuthorID       *uint64
 	PublisherID    *uint64
 	StartAt        domain.NullTime
@@ -39,6 +40,7 @@ func (b *BookTable) ToModel() domain.Book {
 	m := domain.Book{
 		AccountID:      b.AccountID,
 		Title:          b.Title,
+		Isbn:           b.Isbn,
 		Author:         nil,
 		Publisher:      nil,
 		StartAt:        b.StartAt,
@@ -65,13 +67,14 @@ func ToTable(b domain.Book) BookTable {
 	}
 
 	t := BookTable{
-		Title:       b.Title,
-		AccountID:   b.AccountID,
-		AuthorID:    authorID,
-		PublisherID: publisherID,
-		StartAt:     b.StartAt,
-		EndAt:       b.EndAt,
-		ReadState:   b.ReadState,
+		Title:          b.Title,
+		AccountID:      b.AccountID,
+		Isbn:           b.Isbn,
+		AuthorID:       authorID,
+		PublisherID:    publisherID,
+		StartAt:        b.StartAt,
+		EndAt:          b.EndAt,
+		ReadState:      b.ReadState,
 		SmallImageUrl:  b.SmallImageUrl,
 		MediumImageUrl: b.MediumImageUrl,
 		ItemUrl:        b.ItemUrl,
