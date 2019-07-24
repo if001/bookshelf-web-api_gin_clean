@@ -167,35 +167,36 @@ func (b *BookRepository) Find(filter map[string]interface{}) (*domain.Book, erro
 	}
 	book := bookTable.ToModel()
 	if bookTable.AuthorID == nil {
-		return &book, nil
-	}
-	authorTable := make([]domain.Author,0)
-	authorFilter := map[string]interface{}{"id": bookTable.AuthorID}
-	err = b.Connection.Select(authorFilter).Bind(&authorTable).HasError()
-	if err != nil {
-		return nil, err
-	}
-	if len(authorTable) == 0{
 		book.Author = nil
 	} else {
-		book.Author = &authorTable[0]
+		authorTable := make([]domain.Author, 0)
+		authorFilter := map[string]interface{}{"id": bookTable.AuthorID}
+		err = b.Connection.Select(authorFilter).Bind(&authorTable).HasError()
+		if err != nil {
+			return nil, err
+		}
+		if len(authorTable) == 0 {
+			book.Author = nil
+		} else {
+			book.Author = &authorTable[0]
+		}
 	}
 
 	if bookTable.PublisherID == nil {
-		return &book, nil
-	}
-	publisherTable := make([]domain.Publisher,0)
-	publisherFilter := map[string]interface{}{"id": bookTable.PublisherID}
-	err = b.Connection.Select(publisherFilter).Bind(&publisherTable).HasError()
-	if err != nil {
-		return nil, err
-	}
-	if len(publisherTable) == 0 {
 		book.Publisher = nil
 	} else {
-		book.Publisher = &publisherTable[0]
+		publisherTable := make([]domain.Publisher, 0)
+		publisherFilter := map[string]interface{}{"id": bookTable.PublisherID}
+		err = b.Connection.Select(publisherFilter).Bind(&publisherTable).HasError()
+		if err != nil {
+			return nil, err
+		}
+		if len(publisherTable) == 0 {
+			book.Publisher = nil
+		} else {
+			book.Publisher = &publisherTable[0]
+		}
 	}
-
 	return &book, nil
 }
 
