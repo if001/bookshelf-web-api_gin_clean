@@ -266,12 +266,20 @@ func (b *bookController) UpdateBook(c *gin.Context) {
 
 	book.Title = form.Title
 	author := domain.Author{}
-	author.ID = *form.AuthorID
-	book.Author = &author
+	if form.AuthorID != nil {
+		author.ID = *form.AuthorID
+		book.Author = &author
+	} else {
+		book.Author = nil
+	}
 
 	publisher := domain.Publisher{}
-	publisher.ID = *form.PublisherID
-	book.Publisher = &publisher
+	if form.PublisherID != nil {
+		publisher.ID = *form.PublisherID
+		book.Publisher = &publisher
+	} else {
+		book.Publisher = nil
+	}
 
 	updatedBook, err := b.UseCase.UpdateBook(*book, nil)
 	if err != nil {
