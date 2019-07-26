@@ -72,9 +72,12 @@ func Options(c *gin.Context) {
 	c.Header("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 	c.Header("Allow", "HEAD,GET,POST,PUT,PATCH,DELETE,OPTIONS")
 	c.Header("Content-Type", "application/json")
-	if c.Request.Method != "OPTIONS" {
-		c.Next()
-	} else {
+	if c.Request.Method == "OPTIONS" {
+		fmt.Println("option")
 		c.AbortWithStatus(http.StatusOK)
+		return
+	} else {
+		fmt.Println("not option")
+		c.Next()
 	}
 }
