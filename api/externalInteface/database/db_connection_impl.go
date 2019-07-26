@@ -109,6 +109,7 @@ func NewSqlConnection() dbConnection {
 		config.DB.Password,
 		config.DB.Host,
 		config.DB.DB)
+	fmt.Println(dbconf)
 	db, err := gorm.Open("mysql", dbconf)
 	if err != nil {
 		panic(err)
