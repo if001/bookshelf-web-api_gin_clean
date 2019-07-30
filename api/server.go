@@ -9,7 +9,7 @@ import (
 func main() {
 	var port string
 
-	port = os.Getenv("PORT")
+	port = os.Getenv("APP_PORT")
 	if port == "" {
 		port = "8081"
 	}

@@ -1,11 +1,10 @@
 package database
 
 import (
+	"bookshelf-web-api_gin_clean/api/gateway/repositories"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
-
-	"bookshelf-web-api_gin_clean/api/gateway/repositories"
 )
 
 type dbConnection struct {
@@ -98,25 +97,11 @@ func (conn *dbConnection) HasError() error {
 	return conn.DB.Error
 }
 
-func NewSqlConnection() dbConnection {
-	config, err := LoadConfig()
+func NewSqlConnection(url string) dbConnection {
+	db, err := gorm.Open("mysql", url)
 	if err != nil {
 		panic(err.Error())
-	}
-
-	dbconf := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=True&loc=Local",
-		config.DB.User,
-		config.DB.Password,
-		config.DB.Host,
-		config.DB.DB)
-	fmt.Println("conf:",config.DB.User,
-		config.DB.Password,
-		config.DB.Host,
-		config.DB.DB)
-	fmt.Println("conf:", dbconf)
-	db, err := gorm.Open("mysql", dbconf)
-	if err != nil {
-		panic(err)
+		// log.Errorf(ctx, "gormOpen: %s", err)
 	}
 	db.LogMode(true)
 

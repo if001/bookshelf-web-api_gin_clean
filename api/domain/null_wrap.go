@@ -9,12 +9,11 @@ import (
 )
 
 var nullLiteral = []byte("null")
+
 type NullInt64 struct {
 	sql.NullInt64
 }
-func NewNullInt(ni int64) NullInt64 {
-	return NullInt64{NullInt64:sql.NullInt64{ni, ni != 0}}
-}
+
 func (i NullInt64) MarshalJSON() ([]byte, error) {
 	if i.Valid {
 		return json.Marshal(i.Int64)
@@ -32,10 +31,10 @@ func (i *NullInt64) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-
 type NullTime struct {
 	mysql.NullTime
 }
+
 func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if nt.Valid {
 		return nt.Time.MarshalJSON()
@@ -59,4 +58,3 @@ func (nt *NullTime) UnmarshalJSON(data []byte) error {
 
 	return nil
 }
-

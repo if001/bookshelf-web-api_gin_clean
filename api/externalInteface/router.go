@@ -3,40 +3,50 @@ package externalInteface
 import (
 	"bookshelf-web-api_gin_clean/api/externalInteface/database"
 	"bookshelf-web-api_gin_clean/api/gateway/controllers"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func Router() *gin.Engine {
-	router := gin.Default()
-	router.Use(Options, authMiddleware())
+	router := gin.New()
+	router.Use(gin.Logger(), gin.Recovery(), Options())
+
+	router.GET("/health", func(c *gin.Context) { c.JSON(http.StatusOK, "ok"); return })
+
 	//router.Use(Options, authMiddlewareTest())
-	conn := database.NewSqlConnection()
+
+	config := LoadConfig()
+
+	conn := database.NewSqlConnection(config.DB.getURL())
 
 	b := controllers.NewBookController(&conn)
 	d := controllers.NewDescriptionController(&conn)
 	a := controllers.NewAuthorController(&conn)
 	p := controllers.NewPublisherController(&conn)
 
-	router.GET("/books", b.GetAllBooks)
-	router.POST("/books", b.CreateBook)
-	router.PUT("/books", b.UpdateBook)
+	authorized := router.Group("/")
+	authorized.Use(authMiddleware())
+	{
+		authorized.GET("/books", b.GetAllBooks)
+		authorized.POST("/books", b.CreateBook)
+		authorized.PUT("/books", b.UpdateBook)
 
-	router.GET("/book/:id", b.GetBook)
-	router.DELETE("/book/:id", b.DeleteBook)
+		authorized.GET("/book/:id", b.GetBook)
+		authorized.DELETE("/book/:id", b.DeleteBook)
 
-	router.PUT("/book/:id/state/start", b.ChangeBookStatus)
-	router.PUT("/book/:id/state/end", b.ChangeBookStatus)
+		authorized.PUT("/book/:id/state/start", b.ChangeBookStatus)
+		authorized.PUT("/book/:id/state/end", b.ChangeBookStatus)
 
-	router.GET("/book/:id/description", d.GetAllDescriptions)
-	router.POST("/book/:id/description", d.CreateDescription)
-	router.DELETE("/description/:id", d.DeleteDescription)
+		authorized.GET("/book/:id/description", d.GetAllDescriptions)
+		authorized.POST("/book/:id/description", d.CreateDescription)
+		authorized.DELETE("/description/:id", d.DeleteDescription)
 
-	router.GET("/counted_authors", a.GetCountedAuthors)
-	router.POST("/author", a.CreateAuthor)
+		authorized.GET("/counted_authors", a.GetCountedAuthors)
+		authorized.POST("/author", a.CreateAuthor)
 
-	router.GET("/counted_publisher", p.GetCountedPublishers)
-	router.POST("/publisher", p.CreatePublisher)
-
+		authorized.GET("/counted_publisher", p.GetCountedPublishers)
+		authorized.POST("/publisher", p.CreatePublisher)
+	}
 	return router
 }

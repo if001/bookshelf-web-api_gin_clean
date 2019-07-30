@@ -1,0 +1,28 @@
+runtime: go111
+service: bookshelf-api
+
+handlers:
+  # All URLs are handled by the Go application script
+  - url: /.*
+    script: auto
+
+automatic_scaling:
+  min_idle_instances: automatic   # idle状態にあるインスタンスの最小値
+  max_idle_instances: 1                 # idle状態にあるインスタンスの最大値
+  min_pending_latency: 3000ms  # リクエストを処理するまでに許される待ち時間の最小
+  max_pending_latency: automatic
+
+env_variables:
+  GO_ENV: product
+  FIREBASE_KEYFILE_JSON: "{
+  \"type\": \"service_account\",
+  \"project_id\": \"bookshelf-239408\",
+  \"private_key_id\": \"61a6ff42923ea562162c3c252421bfb7b2ea16c9\",
+  \"private_key\": \"-----BEGIN PRIVATE KEY-----\\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDEKYrX7Wesw7P5\\nvd/XNnGkOMsj3G47i72dF+cgVGDYEwiaVeCy7SnXrn/zZf2c8mxkWvx53XKDc9xj\\nYlFDtYL5+TByXhnPgtue8L9Jls//F+pY5qfK4BI229Srxh8iUMuiXKpONPD9MWer\\nynDvHZIKPmGuMPt+9bvVEWXbifWpY93poaFdqjwWpaBYmGdFwd/iEFiAdblR2Ama\\nhx3YOOwN02H1V74IoMd/n8fUx8xT3oJ6buNa27nyJ0YzcrfLFs//VEChZb+SqlKk\\n1JXWdqF4w/4ApgzmLw1K2RoxuCPMYwZHnbafg/ksC2XU39d8omS5jOUsemq5P1tW\\nh9rQvJRDAgMBAAECggEATNWQwr8EqtEE/791m9CBdregKe2/Z6d2n7+rEii6vifG\\naN1WY/8tMoPxLh821XDHMA/LcNhicEbDflIWTpUcNll6tnFRXsx8xaa65lIiKmLt\\nseC2vGpD+CTnCllR/Jj1CiWNt5BZDHN7jfh/f8lvWH/Stu4MtFAAQJbN9M324V/C\\n72350PJwG3vBtwNCLH2DRgZG0UICAZj44Us/HrM+0bH1nS8WG5zmKI27xTgnbTR8\\n/KW+BDY7lKPyUEfd6ymhUbEawDxI+aI9mH3++Vn6h4FjFf8pZw8ac6aj2vZYu7Yt\\nXquft0nfbWIICZ1xmolPMr6nU9o0INxPku4AyBMmkQKBgQDo72An8We29VyyuHt2\\nZDEX99G19hnEVvRsvJo6lECMeR7LYXCyUdT58qYVdDRpIDo3Dwo2yHOJdOaZPV+i\\n7h5A7+BEyfPAq8Nwm7eYQ70QKzDx/AZ+P0HFzEhXVU/BPJBWAaNXQ9KxfzOAsMuJ\\n4akkaIi9AwN/D0r7wJqyTTiAZwKBgQDXlgVObmQ3pIcBqbeQ90TzXGCIp+j/p6CC\\n72V0Na+Ec15pJojZtCxXW/2LA+4IfwQ6+R5R4V5bvgUwUdybw5W5aU2asZ5NbZTa\\n3iy7mZ3TG7YqPdgmBBZKwgezbVly6qAn6u/gmH2IyNonmk0dmMpcssU6bU3A2a4A\\nX6OaLqDzxQKBgQDfLbsrihidK6mNc0SXwpdnJ4I+nXVCsS2voWUEC1dtP/9JTir0\\nL4Onl92ZYKV2s/ITHs3if1xzrxXibPNc4FkMTsjKH9T0HZ48HnZh5UUYYMmckKSI\\nAYO7SGdnhc3Mj4KbZSZjThBpED8AZmQdz6CHycB5mJGZA8YMQBX4EBS6sQKBgCh6\\nSXrFbVmpMZQVWpsEYlTTJmjiJfRCc/fBnSnpno/e3X4etxkxJBYu9nbwgPPlbVTp\\nS1ESYJYXIoBFDofMfEM4y1JdQRzGk2lYx8tdd22YyWY7AGd64vicX7fHs0DJXtK/\\n4NQprYBOPe+roAkLlAs9oZxrw2qPNIVrb5tWX/AFAoGBAN1HEfjc5cLFI4E3Sdlu\\nenSMdtkpRhPYTgl643m/wqoHWJpWNpvy9JtmDIvn8IaIdhlCJVnEkr9Q7wsskySY\\nkMtixakPy0cZ5bML10NHbrl0ZA5yPrGENAT8ZH3G+VXazX33HVCUugLUvJkG4KP6\\n/Lua0e2eDsZSnvh2ToYfsNvj\\n-----END PRIVATE KEY-----\\n\",
+  \"client_email\": \"firebase-adminsdk-ujfj8@bookshelf-239408.iam.gserviceaccount.com\",
+  \"client_id\": \"113928124719577910030\",
+  \"auth_uri\": \"https://accounts.google.com/o/oauth2/auth\",
+  \"token_uri\": \"https://oauth2.googleapis.com/token\",
+  \"auth_provider_x509_cert_url\": \"https://www.googleapis.com/oauth2/v1/certs\",
+  \"client_x509_cert_url\": \"https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-ujfj8%40bookshelf-239408.iam.gserviceaccount.com\"
+}"

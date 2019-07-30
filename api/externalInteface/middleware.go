@@ -1,16 +1,16 @@
 package externalInteface
 
 import (
-	"net/http"
-	"google.golang.org/api/option"
-	"firebase.google.com/go"
-	"log"
 	"context"
+	"firebase.google.com/go"
 	"fmt"
-	"os"
-	"strings"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
+	"log"
+	"net/http"
+	"os"
+	"strings"
 )
 
 func authMiddlewareTest() gin.HandlerFunc {
@@ -28,7 +28,7 @@ func authMiddleware() gin.HandlerFunc {
 		if authKey == "" {
 			opt = option.WithCredentialsFile("/Users/issei/gcloud_key_json/bookshelf-239408-firebase-adminsdk-ujfj8-61a6ff4292.json")
 		} else {
-			credentials, err := google.CredentialsFromJSON(ctx, []byte(os.Getenv("FIREBASE_KEYFILE_JSON")))
+			credentials, err := google.CredentialsFromJSON(ctx, []byte(authKey))
 			if err != nil {
 				fmt.Printf("authMiddleware: %v\n", err)
 				os.Exit(1)
@@ -66,18 +66,20 @@ func authMiddleware() gin.HandlerFunc {
 	}
 }
 
-func Options(c *gin.Context) {
-	c.Header("Access-Control-Allow-Origin", "*")
-	c.Header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS")
-	c.Header("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-	c.Header("Allow", "HEAD,GET,POST,PUT,PATCH,DELETE,OPTIONS")
-	c.Header("Content-Type", "application/json")
-	if c.Request.Method == "OPTIONS" {
-		fmt.Println("option")
-		c.AbortWithStatus(http.StatusOK)
-		return
-	} else {
-		fmt.Println("not option")
-		c.Next()
+func Options() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS")
+		c.Header("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		c.Header("Allow", "HEAD,GET,POST,PUT,PATCH,DELETE,OPTIONS")
+		c.Header("Content-Type", "application/json")
+		if c.Request.Method == "OPTIONS" {
+			fmt.Println("option")
+			c.AbortWithStatus(http.StatusOK)
+			return
+		} else {
+			fmt.Println("not option")
+			c.Next()
+		}
 	}
 }
