@@ -73,6 +73,11 @@ func parseStatus(s string) (*domain.ReadState, error) {
 func (b *bookController) GetAllBooks(c *gin.Context) {
 	filter := map[string]interface{}{}
 
+	isbn := c.Query("isbn")
+	if isbn != "" {
+		usecases.ByISBN(filter, isbn)
+	}
+
 	accountId, ok := c.MustGet("account_id").(string)
 	if !ok {
 		log.Println("GetBook: ", errors.New("accountId parser error"))
