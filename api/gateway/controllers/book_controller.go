@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"github.com/go-sql-driver/mysql"
 	"net/http"
+	"time"
 
 	"bookshelf-web-api_gin_clean/api/gateway/repositories"
 	"bookshelf-web-api_gin_clean/api/usecases"
@@ -44,10 +46,12 @@ type BookForm struct {
 }
 
 type BookUpdateForm struct {
-	ID          uint64  `json:"id" binding:"required"`
-	Title       string  `json:"title" binding:"required"`
-	AuthorID    *uint64 `json:"author_id"`
-	PublisherID *uint64 `json:"publisher_id"`
+	ID          uint64     `json:"id" binding:"required"`
+	Title       string     `json:"title" binding:"required"`
+	AuthorID    *uint64    `json:"author_id"`
+	PublisherID *uint64    `json:"publisher_id"`
+	StartAt     *time.Time `json:"start_at"`
+	EndAt       *time.Time `json:"end_id"`
 }
 
 type Response struct {
@@ -284,6 +288,18 @@ func (b *bookController) UpdateBook(c *gin.Context) {
 		book.Publisher = &publisher
 	} else {
 		book.Publisher = nil
+	}
+
+	if form.StartAt != nil {
+		book.StartAt = domain.NullTime{NullTime: mysql.NullTime{Time: *form.StartAt, Valid: true}}
+	} else {
+		book.StartAt = domain.NullTime{NullTime: mysql.NullTime{Time: time.Now(), Valid: false}}
+	}
+
+	if form.EndAt != nil {
+		book.EndAt = domain.NullTime{NullTime: mysql.NullTime{Time: *form.EndAt, Valid: true}}
+	} else {
+		book.EndAt = domain.NullTime{NullTime: mysql.NullTime{Time: time.Now(), Valid: false}}
 	}
 
 	updatedBook, err := b.UseCase.UpdateBook(*book, nil)
