@@ -302,6 +302,17 @@ func (b *bookController) UpdateBook(c *gin.Context) {
 		book.EndAt = domain.NullTime{NullTime: mysql.NullTime{Time: time.Now(), Valid: false}}
 	}
 
+	if form.StartAt == nil && form.EndAt == nil {
+		book.ReadState = domain.NotReadValue
+	} else if form.StartAt != nil && form.EndAt == nil {
+		book.ReadState = domain.ReadingValue
+	} else if form.StartAt != nil && form.EndAt == nil {
+		book.ReadState = domain.ReadValue
+	} else {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "bad read state"})
+		return
+	}
+
 	updatedBook, err := b.UseCase.UpdateBook(*book, nil)
 	if err != nil {
 		log.Println(err.Error())
