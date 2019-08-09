@@ -1,5 +1,5 @@
 runtime: go111
-service: bookshelf-api
+service: default
 
 handlers:
   # All URLs are handled by the Go application script
