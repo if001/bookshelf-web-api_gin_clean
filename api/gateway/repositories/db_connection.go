@@ -18,4 +18,5 @@ type DBConnection interface {
 	CountedAuthorQuery(bind interface{}) error
 	CountedPublisherQuery(bind interface{}) error
 	HasError() error
+	SelectBookWith(bind interface{}) DBConnection
 }

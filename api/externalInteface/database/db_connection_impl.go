@@ -93,6 +93,15 @@ func (conn *dbConnection) CountedPublisherQuery(bind interface{}) error {
 		Error
 }
 
+func (conn *dbConnection) SelectBookWith(bind interface{}) repositories.DBConnection {
+	return &dbConnection{DB: conn.DB.Table("books").
+		Select("books.*, author.id, author.name,author.created_at,author.updated_at, " +
+			"publisher.id, publisher.name, publisher.created_at, publisher.updated_at").
+		Joins("left join author on author.id = books.author_id").
+		Joins("left join publisher on publisher.id = books.publisher_id").
+		Find(bind)}
+}
+
 func (conn *dbConnection) HasError() error {
 	return conn.DB.Error
 }

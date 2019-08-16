@@ -14,8 +14,6 @@ func Router() *gin.Engine {
 
 	router.GET("/health", func(c *gin.Context) { c.JSON(http.StatusOK, "ok"); return })
 
-	//router.Use(Options, authMiddlewareTest())
-
 	config := LoadConfig()
 
 	conn := database.NewSqlConnection(config.DB.getURL())
@@ -27,6 +25,7 @@ func Router() *gin.Engine {
 
 	authorized := router.Group("/")
 	authorized.Use(authMiddleware())
+	// authorized.Use(authMiddlewareTest())
 	{
 		authorized.GET("/books", b.GetAllBooks)
 		authorized.POST("/books", b.CreateBook)

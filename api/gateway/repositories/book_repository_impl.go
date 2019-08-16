@@ -86,6 +86,12 @@ func ToTable(b domain.Book) BookTable {
 	return t
 }
 
+type BookWith struct {
+	domain.Book
+	*domain.Author
+	*domain.Publisher
+}
+
 func NewBookRepository(conn DBConnection) usecases.BookRepository {
 	return &BookRepository{Connection: conn}
 }
@@ -102,53 +108,33 @@ func (b *BookRepository) FindAll(filter map[string]interface{}, page uint64, per
 		query = query.Paginate(page, perPage)
 	}
 	if sortKey == "" {
-		query = query.SortDesc("updated_at")
+		query = query.SortDesc("books.updated_at")
 	} else if sortKey == "title" {
-		query = query.SortAsc(sortKey)
+		query = query.SortAsc("books." + sortKey)
 	} else {
-		query = query.SortDesc(sortKey)
+		query = query.SortDesc("books." + sortKey)
 	}
 
-	err := query.Bind(&bookTables).HasError()
+	var bookWiths = make([]BookWith, 0)
+	err := query.SelectBookWith(&bookWiths).HasError()
 	if err != nil {
 		return nil, fmt.Errorf("FindAll: %s", err)
 	}
-	authorTables := domain.Authors{}
-	cc := b.Connection
-	for _, v := range bookTables {
-		cc.OrFilter(map[string]interface{}{"author_id": v.AuthorID})
-	}
-	err = cc.Bind(&authorTables).HasError()
-	if err != nil {
-		return nil, fmt.Errorf("FindAll: %s", err)
-	}
-
-	publisherTables := domain.Publishers{}
-	pc := b.Connection
-	for _, v := range bookTables {
-		pc.OrFilter(map[string]interface{}{"publisher_id": v.PublisherID})
-	}
-	err = cc.Bind(&publisherTables).HasError()
-	if err != nil {
-		return nil, fmt.Errorf("FindAll: %s", err)
-	}
-
-	books := domain.Books{}
-	for _, v := range bookTables {
-		b := v.ToModel()
-		if v.AuthorID != nil {
-			author := authorTables.FindById(*v.AuthorID)
-			b.Author = author
+	var books = make(domain.Books, 0)
+	for _, v := range bookWiths {
+		book := domain.Book{}
+		book = v.Book
+		if v.Author.ID != 0 {
+			book.Author = v.Author
 		} else {
-			b.Author = nil
+			book.Author = nil
 		}
-		if v.PublisherID != nil {
-			publisher := publisherTables.FindById(*v.PublisherID)
-			b.Publisher = publisher
+		if v.Publisher.ID != 0 {
+			book.Publisher = v.Publisher
 		} else {
-			b.Publisher = nil
+			book.Publisher = nil
 		}
-		books = append(books, b)
+		books = append(books, book)
 	}
 
 	paginateBooks := domain.PaginateBooks{
@@ -160,42 +146,26 @@ func (b *BookRepository) FindAll(filter map[string]interface{}, page uint64, per
 }
 
 func (b *BookRepository) Find(filter map[string]interface{}) (*domain.Book, error) {
-	var bookTable = BookTable{}
-	err := b.Connection.Select(filter).Bind(&bookTable).HasError()
+	query := b.Connection.Select(filter)
+	var bookWith = BookWith{}
+	err := query.SelectBookWith(&bookWith).HasError()
 	if err != nil {
-		return nil, err
-	}
-	book := bookTable.ToModel()
-	if bookTable.AuthorID == nil {
-		book.Author = nil
-	} else {
-		authorTable := make([]domain.Author, 0)
-		authorFilter := map[string]interface{}{"id": bookTable.AuthorID}
-		err = b.Connection.Select(authorFilter).Bind(&authorTable).HasError()
-		if err != nil {
-			return nil, err
-		}
-		if len(authorTable) == 0 {
-			book.Author = nil
-		} else {
-			book.Author = &authorTable[0]
-		}
+		return nil, fmt.Errorf("FindAll: %s", err)
 	}
 
-	if bookTable.PublisherID == nil {
-		book.Publisher = nil
+	var book = domain.Book{}
+	book = bookWith.Book
+	// 初期化された構造体が入るので、nilを入れ直している
+	// TODO 修正したい
+	if bookWith.Author.ID != 0 {
+		book.Author = bookWith.Author
 	} else {
-		publisherTable := make([]domain.Publisher, 0)
-		publisherFilter := map[string]interface{}{"id": bookTable.PublisherID}
-		err = b.Connection.Select(publisherFilter).Bind(&publisherTable).HasError()
-		if err != nil {
-			return nil, err
-		}
-		if len(publisherTable) == 0 {
-			book.Publisher = nil
-		} else {
-			book.Publisher = &publisherTable[0]
-		}
+		book.Author = nil
+	}
+	if bookWith.Publisher.ID != 0 {
+		book.Publisher = bookWith.Publisher
+	} else {
+		book.Publisher = nil
 	}
 	return &book, nil
 }
