@@ -27,3 +27,7 @@ func ByStatus(filter map[string]interface{}, status domain.ReadState) {
 func ByISBN(filter map[string]interface{}, isbn string) {
 	filter["isbn"] = isbn
 }
+
+func ByBook(filter map[string]interface{}, isbn string) {
+	filter["book"] = isbn
+}

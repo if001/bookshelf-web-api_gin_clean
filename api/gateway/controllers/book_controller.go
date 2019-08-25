@@ -110,6 +110,11 @@ func (b *bookController) GetAllBooks(c *gin.Context) {
 		usecases.ByStatus(filter, *readStatus)
 	}
 
+	bookFilter := c.Query("book")
+	if bookFilter != "" {
+		usecases.ByBook(filter, bookFilter)
+	}
+
 	books, err := b.UseCase.GetAllBooks(filter, page, perPage, sortKey)
 	if err != nil {
 		log.Println("GetAllBooks: ", err.Error())

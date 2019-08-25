@@ -97,13 +97,21 @@ func NewBookRepository(conn DBConnection) usecases.BookRepository {
 }
 
 func (b *BookRepository) FindAll(filter map[string]interface{}, page uint64, perPage uint64, sortKey string) (*domain.PaginateBooks, error) {
-	var bookTables = make([]BookTable, 0)
-	var count int64 = 0
-	if err := b.Connection.Table(&bookTables).Select(filter).Count(&count).HasError(); err != nil {
-		return nil, err
-	}
+	query := b.Connection
 
-	query := b.Connection.Select(filter)
+	if bookFilter, ok := filter["book"]; ok {
+		bookFilterStr, ok := bookFilter.(string)
+		if !ok {
+			return nil, errors.New("FindAll Book Filter Error")
+		}
+		query = query.
+			Like("books.title LIKE ?", fmt.Sprintf("%%%s%%", bookFilterStr)).
+			OrLike("author.name LIKE ?", fmt.Sprintf("%%%s%%", bookFilterStr)).
+			OrLike("publisher.name LIKE ?", fmt.Sprintf("%%%s%%", bookFilterStr))
+		delete(filter, "book")
+	}
+	query = query.Where(filter)
+
 	if page > 0 && perPage > 0 {
 		query = query.Paginate(page, perPage)
 	}
@@ -139,14 +147,14 @@ func (b *BookRepository) FindAll(filter map[string]interface{}, page uint64, per
 
 	paginateBooks := domain.PaginateBooks{
 		Books:      books,
-		TotalCount: count,
+		TotalCount: int64(len(books)),
 	}
 
 	return &paginateBooks, nil
 }
 
 func (b *BookRepository) Find(filter map[string]interface{}) (*domain.Book, error) {
-	query := b.Connection.Select(filter)
+	query := b.Connection.Where(filter)
 	var bookWith = BookWith{}
 	err := query.SelectBookWith(&bookWith).HasError()
 	if err != nil {
@@ -182,13 +190,13 @@ func (b *BookRepository) Create(book domain.Book) (*domain.Book, error) {
 
 func (b *BookRepository) Delete(filter map[string]interface{}) (err error) {
 	var bookTable = BookTable{}
-	err = b.Connection.Select(filter).Bind(&bookTable).HasError()
+	err = b.Connection.Where(filter).Bind(&bookTable).HasError()
 	if err != nil {
 		return
 	}
 	var descriptionsTable = domain.Descriptions{}
 	m := map[string]interface{}{"book_id": bookTable.ID}
-	err = b.Connection.Select(m).Bind(&descriptionsTable).HasError()
+	err = b.Connection.Where(m).Bind(&descriptionsTable).HasError()
 	if err != nil {
 		return err
 	}
@@ -234,7 +242,7 @@ func (b *BookRepository) Store(book domain.Book) error {
 
 func (b *BookRepository) UpdateUpdatedAt(filter map[string]interface{}) error {
 	var bookTable = BookTable{}
-	err := b.Connection.Select(filter).Bind(&bookTable).HasError()
+	err := b.Connection.Where(filter).Bind(&bookTable).HasError()
 	if err != nil {
 		return err
 	}

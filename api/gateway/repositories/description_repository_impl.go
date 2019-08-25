@@ -18,12 +18,12 @@ func NewDescriptionRepository(conn DBConnection) usecases.DescriptionRepository 
 
 func (d *DescriptionRepository) FindAll(filter map[string]interface{}, page uint64, perPage uint64) (*domain.Descriptions, error) {
 	var descriptions = make(domain.Descriptions, 0)
-	query := d.Connection.Select(filter)
+	query := d.Connection.Where(filter)
 
 	if page > 0 && perPage > 0 {
 		query = query.Paginate(page, perPage)
 	} else {
-		query = d.Connection.Select(filter)
+		query = d.Connection.Where(filter)
 	}
 
 	err := query.SortDesc("updated_at").Bind(&descriptions).HasError()
@@ -57,7 +57,7 @@ func (d *DescriptionRepository) Create(description domain.Description) (desc *do
 
 	book := domain.Book{}
 	filter := map[string]interface{}{"id": description.BookId}
-	err = tx.Select(filter).Bind(&book).HasError()
+	err = tx.Where(filter).Bind(&book).HasError()
 	if err != nil {
 		err = fmt.Errorf("description create: %s", err)
 		return

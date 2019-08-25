@@ -19,8 +19,15 @@ func (conn *dbConnection) Paginate(page, perPage uint64) repositories.DBConnecti
 	return &dbConnection{DB: conn.DB.Offset(perPage * (page - 1)).Limit(perPage)}
 }
 
-func (conn *dbConnection) Select(filter interface{}) repositories.DBConnection {
+func (conn *dbConnection) Where(filter interface{}) repositories.DBConnection {
 	return &dbConnection{DB: conn.DB.Where(filter)}
+}
+
+func (conn *dbConnection) Like(key, filter string) repositories.DBConnection {
+	return &dbConnection{DB: conn.DB.Where(key, filter)}
+}
+func (conn *dbConnection) OrLike(key, filter string) repositories.DBConnection {
+	return &dbConnection{DB: conn.DB.Or(key, filter)}
 }
 
 func (conn *dbConnection) OrFilter(filter interface{}) repositories.DBConnection {
