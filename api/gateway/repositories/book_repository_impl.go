@@ -112,6 +112,14 @@ func (b *BookRepository) FindAll(filter map[string]interface{}, page uint64, per
 	}
 	query = query.Where(filter)
 
+	queryForCount := DBConnection(query)
+	var bookWiths = make([]BookWith, 0)
+	var count int64 = 0
+	err := queryForCount.SelectBookWith(&bookWiths).Count(&count).HasError()
+	if err != nil {
+		return nil, fmt.Errorf("FindAll: %s", err)
+	}
+
 	if page > 0 && perPage > 0 {
 		query = query.Paginate(page, perPage)
 	}
@@ -123,8 +131,7 @@ func (b *BookRepository) FindAll(filter map[string]interface{}, page uint64, per
 		query = query.SortDesc("books." + sortKey)
 	}
 
-	var bookWiths = make([]BookWith, 0)
-	err := query.SelectBookWith(&bookWiths).HasError()
+	err = query.SelectBookWith(&bookWiths).HasError()
 	if err != nil {
 		return nil, fmt.Errorf("FindAll: %s", err)
 	}
@@ -147,7 +154,7 @@ func (b *BookRepository) FindAll(filter map[string]interface{}, page uint64, per
 
 	paginateBooks := domain.PaginateBooks{
 		Books:      books,
-		TotalCount: int64(len(books)),
+		TotalCount: count,
 	}
 
 	return &paginateBooks, nil
