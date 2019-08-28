@@ -26,6 +26,8 @@ type BookController interface {
 	ChangeBookStatus(c *gin.Context)
 	DeleteBook(c *gin.Context)
 	UpdateBook(c *gin.Context)
+	GetCountedByAuthor(c *gin.Context)
+	GetCountedByPublisher(c *gin.Context)
 }
 
 func NewBookController(dbConnection repositories.DBConnection) BookController {
@@ -325,4 +327,43 @@ func (b *bookController) UpdateBook(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: updatedBook})
+}
+
+
+func (b *bookController) GetCountedByAuthor(c *gin.Context) {
+	filter := usecases.NewFilter()
+	accountId, ok := c.MustGet("account_id").(string)
+	if !ok {
+		log.Println("GetBook: ", errors.New("accountId parser error"))
+		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		return
+	}
+	usecases.ByAccountId(filter, accountId)
+
+	authorCountedByName, err := b.UseCase.CountByName("author")
+	if err != nil {
+		log.Println("GetAllBooks: ", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusInternalServerError})
+		return
+	}
+	c.JSON(http.StatusOK, Response{Content: authorCountedByName})
+}
+
+func (b *bookController) GetCountedByPublisher(c *gin.Context) {
+	filter := usecases.NewFilter()
+	accountId, ok := c.MustGet("account_id").(string)
+	if !ok {
+		log.Println("GetBook: ", errors.New("accountId parser error"))
+		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		return
+	}
+	usecases.ByAccountId(filter, accountId)
+
+	countedByName, err := b.UseCase.CountByName("publisher")
+	if err != nil {
+		log.Println("GetAllBooks: ", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusInternalServerError})
+		return
+	}
+	c.JSON(http.StatusOK, Response{Content: countedByName})
 }

@@ -30,6 +30,8 @@ func Router() *gin.Engine {
 		authorized.GET("/books", b.GetAllBooks)
 		authorized.POST("/books", b.CreateBook)
 		authorized.PUT("/books", b.UpdateBook)
+		authorized.GET("/books/counted/author", b.GetCountedByAuthor)
+		authorized.GET("/books/counted/publisher", b.GetCountedByPublisher)
 
 		authorized.GET("/book/:id", b.GetBook)
 		authorized.DELETE("/book/:id", b.DeleteBook)

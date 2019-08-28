@@ -12,7 +12,7 @@ type dbConnection struct {
 }
 
 func (conn *dbConnection) Bind(bind interface{}) repositories.DBConnection {
-	return &dbConnection{DB: conn.DB.Find(bind)}
+	return &dbConnection{DB: conn.DB.Scan(bind)}
 }
 
 func (conn *dbConnection) Paginate(page, perPage uint64) repositories.DBConnection {
@@ -26,6 +26,7 @@ func (conn *dbConnection) Where(filter interface{}) repositories.DBConnection {
 func (conn *dbConnection) Like(key, filter string) repositories.DBConnection {
 	return &dbConnection{DB: conn.DB.Where(key, filter)}
 }
+
 func (conn *dbConnection) OrLike(key, filter string) repositories.DBConnection {
 	return &dbConnection{DB: conn.DB.Or(key, filter)}
 }
@@ -57,6 +58,15 @@ func (conn *dbConnection) SortAsc(key string) repositories.DBConnection {
 func (conn *dbConnection) Count(count *int64) repositories.DBConnection {
 	return &dbConnection{DB: conn.DB.Count(count)}
 }
+
+func (conn *dbConnection) GroupBy(key string) repositories.DBConnection {
+	return &dbConnection{DB: conn.DB.Group(key)}
+}
+
+func (conn *dbConnection) Limit(num int) repositories.DBConnection {
+	return &dbConnection{DB: conn.DB.Limit(num)}
+}
+
 
 func (conn *dbConnection) Table(table interface{}) repositories.DBConnection {
 	return &dbConnection{DB: conn.DB.Model(table)}
@@ -100,13 +110,27 @@ func (conn *dbConnection) CountedPublisherQuery(bind interface{}) error {
 		Error
 }
 
-func (conn *dbConnection) SelectBookWith(bind interface{}) repositories.DBConnection {
+func (conn *dbConnection) SelectBookWith() repositories.DBConnection {
 	return &dbConnection{DB: conn.DB.Table("books").
 		Select("books.*, author.id, author.name,author.created_at,author.updated_at, " +
 			"publisher.id, publisher.name, publisher.created_at, publisher.updated_at").
 		Joins("left join author on author.id = books.author_id").
-		Joins("left join publisher on publisher.id = books.publisher_id").
-		Find(bind)}
+		Joins("left join publisher on publisher.id = books.publisher_id"),
+	}
+}
+
+func (conn *dbConnection) SelectBookWithAuthorName() repositories.DBConnection {
+	return &dbConnection{DB: conn.DB.Table("books").
+		Select("author.name, count(author.name) as count").
+		Joins("left join author on author.id = books.author_id"),
+	}
+}
+
+func (conn *dbConnection) SelectBookWithPublisherName() repositories.DBConnection {
+	return &dbConnection{DB: conn.DB.Table("books").
+		Select("publisher.name, count(publisher.name) as count").
+		Joins("left join publisher on publisher.id = books.publisher_id"),
+	}
 }
 
 func (conn *dbConnection) HasError() error {

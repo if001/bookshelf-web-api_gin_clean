@@ -3,9 +3,9 @@ package repositories
 import (
 	"bookshelf-web-api_gin_clean/api/domain"
 	"bookshelf-web-api_gin_clean/api/usecases"
-	"time"
-	"fmt"
 	"errors"
+	"fmt"
+	"time"
 )
 
 type BookRepository struct {
@@ -115,7 +115,7 @@ func (b *BookRepository) FindAll(filter map[string]interface{}, page uint64, per
 	queryForCount := DBConnection(query)
 	var bookWiths = make([]BookWith, 0)
 	var count int64 = 0
-	err := queryForCount.SelectBookWith(&bookWiths).Count(&count).HasError()
+	err := queryForCount.SelectBookWith().Bind(&bookWiths).Count(&count).HasError()
 	if err != nil {
 		return nil, fmt.Errorf("FindAll: %s", err)
 	}
@@ -131,7 +131,7 @@ func (b *BookRepository) FindAll(filter map[string]interface{}, page uint64, per
 		query = query.SortDesc("books." + sortKey)
 	}
 
-	err = query.SelectBookWith(&bookWiths).HasError()
+	err = query.SelectBookWith().Bind(&bookWiths).HasError()
 	if err != nil {
 		return nil, fmt.Errorf("FindAll: %s", err)
 	}
@@ -163,7 +163,7 @@ func (b *BookRepository) FindAll(filter map[string]interface{}, page uint64, per
 func (b *BookRepository) Find(filter map[string]interface{}) (*domain.Book, error) {
 	query := b.Connection.Where(filter)
 	var bookWith = BookWith{}
-	err := query.SelectBookWith(&bookWith).HasError()
+	err := query.SelectBookWith().Bind(&bookWith).HasError()
 	if err != nil {
 		return nil, fmt.Errorf("FindAll: %s", err)
 	}
@@ -259,4 +259,36 @@ func (b *BookRepository) UpdateUpdatedAt(filter map[string]interface{}) error {
 
 	bookTable.UpdatedAt = time.Now()
 	return b.Connection.Update(bookTable).HasError()
+}
+
+
+const (
+	countedAuthorKey = "author.name"
+	countedPublisherKey = "publisher.name"
+)
+
+func (b *BookRepository) CountByAuthor() (*domain.CountedNames, error) {
+	return countedBy(b, countedAuthorKey)
+}
+
+func (b *BookRepository) CountByPublisher() (*domain.CountedNames, error) {
+	return countedBy(b, countedPublisherKey)
+}
+
+func countedBy(b *BookRepository, key string) (*domain.CountedNames, error) {
+	query := b.Connection
+	if key == countedAuthorKey {
+		query = query.SelectBookWithAuthorName()
+	} else if key == countedPublisherKey {
+		query = query.SelectBookWithPublisherName()
+	} else {
+		return nil, errors.New("countedBy: invalid counted name key")
+	}
+
+	var countedNames = make(domain.CountedNames, 0)
+	err := query.GroupBy(key).Bind(&countedNames).HasError()
+	if err != nil {
+		return nil, fmt.Errorf("countedBy: %s", err)
+	}
+	return &countedNames, nil
 }

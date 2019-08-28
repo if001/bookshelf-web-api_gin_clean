@@ -141,3 +141,56 @@ type CountedPublisher struct {
 }
 
 type CountedPublishers []CountedPublisher
+
+type CountedName struct {
+	Name  string `json:"name"`
+	Count int64  `json:"count"`
+}
+
+type CountedNames []CountedName
+
+func (s CountedNames) RemoveByName(name string) CountedNames {
+	result := make(CountedNames, 0)
+	for _, v := range s {
+		if v.Name != name {
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
+func (s CountedNames) SearchIndex(name string) (int, bool) {
+	i := 0
+	for i, v := range s {
+		if v.Name == name {
+			return i, true
+		}
+	}
+	return i, false
+}
+
+func (s CountedNames) GetMax() CountedName {
+	var maxCount int64 = 0
+	max := CountedName{}
+	for _, v := range s {
+		if maxCount < v.Count {
+			maxCount = v.Count
+			max = v
+		}
+	}
+	return max
+}
+
+func (s CountedNames) SortByCount() CountedNames {
+	result := make(CountedNames, len(s))
+
+	n := make(CountedNames, len(s))
+	copy(n, s)
+
+	for i := range result {
+		m := n.GetMax()
+		result[i] = m
+		n = n.RemoveByName(m.Name)
+	}
+	return result
+}

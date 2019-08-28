@@ -12,6 +12,8 @@ type DBConnection interface {
 	Update(data interface{}) DBConnection
 	SortDesc(key string) DBConnection
 	SortAsc(key string) DBConnection
+	GroupBy(key string) DBConnection
+	Limit(num int) DBConnection
 	Count(count *int64) DBConnection
 	Table(table interface{}) DBConnection
 	TX() DBConnection
@@ -20,5 +22,7 @@ type DBConnection interface {
 	CountedAuthorQuery(bind interface{}) error
 	CountedPublisherQuery(bind interface{}) error
 	HasError() error
-	SelectBookWith(bind interface{}) DBConnection
+	SelectBookWith() DBConnection
+	SelectBookWithAuthorName() DBConnection
+	SelectBookWithPublisherName() DBConnection
 }

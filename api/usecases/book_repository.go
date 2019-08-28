@@ -11,4 +11,6 @@ type BookRepository interface {
 	Delete(filter map[string]interface{}) error
 	Store(book domain.Book) error
 	UpdateUpdatedAt(filter map[string]interface{}) error
+	CountByAuthor() (*domain.CountedNames, error)
+	CountByPublisher() (*domain.CountedNames, error)
 }

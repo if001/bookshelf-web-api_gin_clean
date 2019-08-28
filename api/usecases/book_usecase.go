@@ -3,6 +3,8 @@ package usecases
 import (
 	"bookshelf-web-api_gin_clean/api/domain"
 	"errors"
+	"strings"
+	"unicode"
 )
 
 type bookUseCase struct {
@@ -16,6 +18,8 @@ type BookUseCase interface {
 	DeleteBook(filter map[string]interface{}) error
 
 	ChangeStatus(filter map[string]interface{}) error
+	CountByName(key string) (*domain.CountedNames, error)
+
 	// StoreCategories() error
 	// ChangeRating() error
 	// SetNextBook() error
@@ -88,4 +92,77 @@ func (b *bookUseCase) ChangeStatus(filter map[string]interface{}) (error) {
 		return err
 	}
 	return nil
+}
+
+func containsName(s []domain.CountedName, name string) bool {
+	for _, v := range s {
+		if v.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func spaceMap(str string) string {
+	return strings.Map(func(r rune) rune {
+		if unicode.IsSpace(r) {
+			return -1
+		}
+		return r
+	}, str)
+}
+
+func (b *bookUseCase) CountByName(key string) (*domain.CountedNames, error) {
+	var err error = nil
+	tmp := make(domain.CountedNames, 0)
+	bookWithName := &tmp
+	if key == "publisher" {
+		bookWithName, err = b.BookRepo.CountByPublisher()
+	} else if key == "author" {
+		bookWithName, err = b.BookRepo.CountByAuthor()
+	} else {
+		return nil, errors.New("CountByName: invalid key")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	tmp2 := bookWithName.RemoveByName("")
+	bookWithName = &tmp2
+
+	length := len(*bookWithName)
+	bookWithNameRe := make(domain.CountedNames, length)
+	for i, v := range *bookWithName {
+		if strings.Contains(v.Name, "/") {
+			authorExTranslation := strings.Split(v.Name, "/")[0]
+			bookWithNameRe[i].Name = spaceMap(authorExTranslation)
+			bookWithNameRe[i].Count = v.Count
+		} else {
+			bookWithNameRe[i].Name = spaceMap(v.Name)
+			bookWithNameRe[i].Count = v.Count
+		}
+	}
+
+	bookWithNameGroupBy := make(domain.CountedNames, 0)
+	for _, v := range bookWithNameRe {
+		if !containsName(bookWithNameGroupBy, v.Name) {
+			bookWithNameGroupBy = append(
+				bookWithNameGroupBy,
+				domain.CountedName{
+					Name:  v.Name,
+					Count: v.Count,
+				})
+		} else {
+			if index, ok := bookWithNameGroupBy.SearchIndex(v.Name); ok {
+				bookWithNameGroupBy[index].Count += v.Count
+			}
+		}
+	}
+	authorCountedNameGroupBySliced := bookWithNameGroupBy.SortByCount()
+	if len(authorCountedNameGroupBySliced) >= 20 {
+		s := authorCountedNameGroupBySliced[:20]
+		return &s, nil
+	} else {
+		return &authorCountedNameGroupBySliced, nil
+	}
 }
