@@ -25,4 +25,5 @@ type DBConnection interface {
 	SelectBookWith() DBConnection
 	SelectBookWithAuthorName() DBConnection
 	SelectBookWithPublisherName() DBConnection
+	GroupByDate(key, format string) DBConnection
 }

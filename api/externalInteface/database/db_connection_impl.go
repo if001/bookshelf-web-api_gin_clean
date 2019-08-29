@@ -12,7 +12,7 @@ type dbConnection struct {
 }
 
 func (conn *dbConnection) Bind(bind interface{}) repositories.DBConnection {
-	return &dbConnection{DB: conn.DB.Scan(bind)}
+	return &dbConnection{DB: conn.DB.Find(bind)}
 }
 
 func (conn *dbConnection) Paginate(page, perPage uint64) repositories.DBConnection {
@@ -132,6 +132,17 @@ func (conn *dbConnection) SelectBookWithPublisherName() repositories.DBConnectio
 		Joins("left join publisher on publisher.id = books.publisher_id"),
 	}
 }
+
+func (conn *dbConnection) GroupByDate(key, format string) repositories.DBConnection {
+	q := fmt.Sprintf("DATE_FORMAT(%s, '%s') as time , count(*) as count", key, format)
+	wq := fmt.Sprintf("%s is not null", key)
+	return &dbConnection{DB: conn.DB.Table("books").
+		Select(q).
+		Where(wq).
+		Group("time"),
+	}
+}
+
 
 func (conn *dbConnection) HasError() error {
 	return conn.DB.Error

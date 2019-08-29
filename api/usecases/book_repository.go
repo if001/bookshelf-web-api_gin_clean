@@ -13,4 +13,5 @@ type BookRepository interface {
 	UpdateUpdatedAt(filter map[string]interface{}) error
 	CountByAuthor() (*domain.CountedNames, error)
 	CountByPublisher() (*domain.CountedNames, error)
+	CountByDate(filter map[string]interface{}, key, format string) (*domain.CountedDates, error)
 }

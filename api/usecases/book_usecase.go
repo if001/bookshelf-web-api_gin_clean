@@ -19,7 +19,7 @@ type BookUseCase interface {
 
 	ChangeStatus(filter map[string]interface{}) error
 	CountByName(key string) (*domain.CountedNames, error)
-
+	CountByDate(filter map[string]interface{}, dateKey , dateType string) (*domain.CountedDates, error)
 	// StoreCategories() error
 	// ChangeRating() error
 	// SetNextBook() error
@@ -165,4 +165,21 @@ func (b *bookUseCase) CountByName(key string) (*domain.CountedNames, error) {
 	} else {
 		return &authorCountedNameGroupBySliced, nil
 	}
+}
+
+func (b *bookUseCase) CountByDate(filter map[string]interface{}, dateKey , dateType string) (*domain.CountedDates, error) {
+	format := ""
+	if dateType == domain.DateKeyDaily {
+		format = "%Y-%m-%d"
+	} else if dateType == domain.DateKeyMonthly {
+		format = "%Y-%m"
+	} else {
+		return nil, errors.New("CountByDate: invalid date key")
+	}
+
+	countedDates, err := b.BookRepo.CountByDate(filter, dateKey, format)
+	if err != nil {
+		return nil, err
+	}
+	return countedDates, nil
 }

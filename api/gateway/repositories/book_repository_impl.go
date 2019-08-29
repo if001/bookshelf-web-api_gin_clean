@@ -261,9 +261,8 @@ func (b *BookRepository) UpdateUpdatedAt(filter map[string]interface{}) error {
 	return b.Connection.Update(bookTable).HasError()
 }
 
-
 const (
-	countedAuthorKey = "author.name"
+	countedAuthorKey    = "author.name"
 	countedPublisherKey = "publisher.name"
 )
 
@@ -291,4 +290,15 @@ func countedBy(b *BookRepository, key string) (*domain.CountedNames, error) {
 		return nil, fmt.Errorf("countedBy: %s", err)
 	}
 	return &countedNames, nil
+}
+
+func (b *BookRepository) CountByDate(filter map[string]interface{}, key, format string) (*domain.CountedDates, error) {
+	var countedDates = make(domain.CountedDates, 0)
+
+	query := b.Connection
+	err := query.Where(filter).GroupByDate(key, format).Bind(&countedDates).HasError()
+	if err != nil {
+		return nil, fmt.Errorf("CountByDate: %s", err)
+	}
+	return &countedDates, nil
 }

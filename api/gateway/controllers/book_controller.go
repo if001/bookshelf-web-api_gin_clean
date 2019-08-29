@@ -28,6 +28,8 @@ type BookController interface {
 	UpdateBook(c *gin.Context)
 	GetCountedByAuthor(c *gin.Context)
 	GetCountedByPublisher(c *gin.Context)
+	GetCountedDaily(c *gin.Context)
+	GetCountedMonthly(c *gin.Context)
 }
 
 func NewBookController(dbConnection repositories.DBConnection) BookController {
@@ -329,7 +331,6 @@ func (b *bookController) UpdateBook(c *gin.Context) {
 	c.JSON(http.StatusOK, Response{Content: updatedBook})
 }
 
-
 func (b *bookController) GetCountedByAuthor(c *gin.Context) {
 	filter := usecases.NewFilter()
 	accountId, ok := c.MustGet("account_id").(string)
@@ -366,4 +367,53 @@ func (b *bookController) GetCountedByPublisher(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: countedByName})
+}
+
+// todo ひとまず一括で取得、必要ならばpath paramで月を指定できるようにする
+func (b *bookController) GetCountedDaily(c *gin.Context) {
+	filter := usecases.NewFilter()
+
+	filter, err := addAccountToFilter(c, &filter)
+	if err != nil {
+		log.Println("GetCountedDaily: ", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		return
+	}
+
+	countedDate, err := b.UseCase.CountByDate(filter, "end_at", domain.DateKeyDaily)
+	if err != nil {
+		log.Println("GetCountedDaily: ", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusInternalServerError})
+		return
+	}
+	c.JSON(http.StatusOK, Response{Content: countedDate})
+}
+
+// todo ひとまず一括で取得、必要ならばpath paramで年を指定できるようにする
+func (b *bookController) GetCountedMonthly(c *gin.Context) {
+	filter := usecases.NewFilter()
+
+	filter, err := addAccountToFilter(c, &filter)
+	if err != nil {
+		log.Println("GetCountedMonthly: ", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		return
+	}
+
+	countedDate, err := b.UseCase.CountByDate(filter, "end_at", domain.DateKeyMonthly)
+	if err != nil {
+		log.Println("GetCountedMonthly: ", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusInternalServerError})
+		return
+	}
+	c.JSON(http.StatusOK, Response{Content: countedDate})
+}
+
+func addAccountToFilter(c *gin.Context, f *map[string]interface{}) (map[string]interface{}, error) {
+	accountId, ok := c.MustGet("account_id").(string)
+	if !ok {
+		return nil, errors.New("accountId parser error")
+	}
+	usecases.ByAccountId(*f, accountId)
+	return *f, nil
 }

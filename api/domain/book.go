@@ -194,3 +194,15 @@ func (s CountedNames) SortByCount() CountedNames {
 	}
 	return result
 }
+
+type CountedDate struct {
+	Time  string `json:"time"`
+	Count int64  `json:"count"`
+}
+
+type CountedDates []CountedDate
+
+const (
+	DateKeyDaily="daily"
+	DateKeyMonthly="monthly"
+)
