@@ -18,7 +18,7 @@ type BookUseCase interface {
 	DeleteBook(filter map[string]interface{}) error
 
 	ChangeStatus(filter map[string]interface{}) error
-	CountByName(key string) (*domain.CountedNames, error)
+	CountByName(filter map[string]interface{}, key string) (*domain.CountedNames, error)
 	CountByDate(filter map[string]interface{}, dateKey , dateType string) (*domain.CountedDates, error)
 	// StoreCategories() error
 	// ChangeRating() error
@@ -112,14 +112,14 @@ func spaceMap(str string) string {
 	}, str)
 }
 
-func (b *bookUseCase) CountByName(key string) (*domain.CountedNames, error) {
+func (b *bookUseCase) CountByName(filter map[string]interface{}, key string) (*domain.CountedNames, error) {
 	var err error = nil
 	tmp := make(domain.CountedNames, 0)
 	bookWithName := &tmp
 	if key == "publisher" {
-		bookWithName, err = b.BookRepo.CountByPublisher()
+		bookWithName, err = b.BookRepo.CountByPublisher(filter)
 	} else if key == "author" {
-		bookWithName, err = b.BookRepo.CountByAuthor()
+		bookWithName, err = b.BookRepo.CountByAuthor(filter)
 	} else {
 		return nil, errors.New("CountByName: invalid key")
 	}

@@ -143,6 +143,10 @@ func (conn *dbConnection) GroupByDate(key, format string) repositories.DBConnect
 	}
 }
 
+func (conn *dbConnection) SearchBook(value string) repositories.DBConnection {
+	q := fmt.Sprintf("(books.title LIKE '%%%s%%')  OR (author.name LIKE '%%%s%%')  OR (publisher.name LIKE '%%%s%%')", value, value, value)
+	return &dbConnection{DB: conn.DB.Where(q)}
+}
 
 func (conn *dbConnection) HasError() error {
 	return conn.DB.Error

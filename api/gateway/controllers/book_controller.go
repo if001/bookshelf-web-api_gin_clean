@@ -333,15 +333,14 @@ func (b *bookController) UpdateBook(c *gin.Context) {
 
 func (b *bookController) GetCountedByAuthor(c *gin.Context) {
 	filter := usecases.NewFilter()
-	accountId, ok := c.MustGet("account_id").(string)
-	if !ok {
-		log.Println("GetBook: ", errors.New("accountId parser error"))
+	filter, err := addAccountToFilter(c, &filter)
+	if err != nil {
+		log.Println("GetCountedByAuthor: ", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
 		return
 	}
-	usecases.ByAccountId(filter, accountId)
 
-	authorCountedByName, err := b.UseCase.CountByName("author")
+	authorCountedByName, err := b.UseCase.CountByName(filter, "author")
 	if err != nil {
 		log.Println("GetAllBooks: ", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusInternalServerError})
@@ -352,15 +351,14 @@ func (b *bookController) GetCountedByAuthor(c *gin.Context) {
 
 func (b *bookController) GetCountedByPublisher(c *gin.Context) {
 	filter := usecases.NewFilter()
-	accountId, ok := c.MustGet("account_id").(string)
-	if !ok {
-		log.Println("GetBook: ", errors.New("accountId parser error"))
+	filter, err := addAccountToFilter(c, &filter)
+	if err != nil {
+		log.Println("GetCountedByPublisher: ", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
 		return
 	}
-	usecases.ByAccountId(filter, accountId)
 
-	countedByName, err := b.UseCase.CountByName("publisher")
+	countedByName, err := b.UseCase.CountByName(filter, "publisher")
 	if err != nil {
 		log.Println("GetAllBooks: ", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusInternalServerError})

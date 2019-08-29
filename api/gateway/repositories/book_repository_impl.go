@@ -104,10 +104,8 @@ func (b *BookRepository) FindAll(filter map[string]interface{}, page uint64, per
 		if !ok {
 			return nil, errors.New("FindAll Book Filter Error")
 		}
-		query = query.
-			Like("books.title LIKE ?", fmt.Sprintf("%%%s%%", bookFilterStr)).
-			OrLike("author.name LIKE ?", fmt.Sprintf("%%%s%%", bookFilterStr)).
-			OrLike("publisher.name LIKE ?", fmt.Sprintf("%%%s%%", bookFilterStr))
+		query = query.SearchBook(bookFilterStr)
+
 		delete(filter, "book")
 	}
 	query = query.Where(filter)
@@ -266,18 +264,18 @@ const (
 	countedPublisherKey = "publisher.name"
 )
 
-func (b *BookRepository) CountByAuthor() (*domain.CountedNames, error) {
-	return countedBy(b, countedAuthorKey)
+func (b *BookRepository) CountByAuthor(filter map[string]interface{}) (*domain.CountedNames, error) {
+	return countedBy(b, filter, countedAuthorKey)
 }
 
-func (b *BookRepository) CountByPublisher() (*domain.CountedNames, error) {
-	return countedBy(b, countedPublisherKey)
+func (b *BookRepository) CountByPublisher(filter map[string]interface{}) (*domain.CountedNames, error) {
+	return countedBy(b, filter, countedPublisherKey)
 }
 
-func countedBy(b *BookRepository, key string) (*domain.CountedNames, error) {
+func countedBy(b *BookRepository, filter map[string]interface{}, key string) (*domain.CountedNames, error) {
 	query := b.Connection
 	if key == countedAuthorKey {
-		query = query.SelectBookWithAuthorName()
+		query = query.Where(filter).SelectBookWithAuthorName()
 	} else if key == countedPublisherKey {
 		query = query.SelectBookWithPublisherName()
 	} else {
