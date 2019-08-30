@@ -292,9 +292,26 @@ func countedBy(b *BookRepository, filter map[string]interface{}, key string) (*d
 
 func (b *BookRepository) CountByDate(filter map[string]interface{}, key, format string) (*domain.CountedDates, error) {
 	var countedDates = make(domain.CountedDates, 0)
+	query := b.Connection.Where(filter)
 
-	query := b.Connection
-	err := query.Where(filter).GroupByDate(key, format).Bind(&countedDates).HasError()
+	if key == domain.BookRegister {
+		query = query.GroupByDate("created_at", format)
+	} else if key == domain.BookReadStart {
+		query = query.
+			RowWhere(fmt.Sprintf("%s is not null", key)).
+			RowWhere("end_at is null").
+			GroupByDate(key, format)
+	} else if key == domain.BookReadEnd {
+		query = query.
+			RowWhere(fmt.Sprintf("%s is not null", key)).
+			RowWhere("start_at is not null").
+			GroupByDate(key, format)
+	} else {
+		return nil, errors.New("CountByDate: invalid key")
+	}
+
+	// TODO 月指定で取ってこれるようにするまで、limitつけとく
+	err := query.Limit(500).Bind(&countedDates).HasError()
 	if err != nil {
 		return nil, fmt.Errorf("CountByDate: %s", err)
 	}

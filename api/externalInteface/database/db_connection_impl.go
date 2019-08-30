@@ -23,6 +23,10 @@ func (conn *dbConnection) Where(filter interface{}) repositories.DBConnection {
 	return &dbConnection{DB: conn.DB.Where(filter)}
 }
 
+func (conn *dbConnection) RowWhere(query string) repositories.DBConnection {
+	return &dbConnection{DB: conn.DB.Where(query)}
+}
+
 func (conn *dbConnection) Like(key, filter string) repositories.DBConnection {
 	return &dbConnection{DB: conn.DB.Where(key, filter)}
 }
@@ -66,7 +70,6 @@ func (conn *dbConnection) GroupBy(key string) repositories.DBConnection {
 func (conn *dbConnection) Limit(num int) repositories.DBConnection {
 	return &dbConnection{DB: conn.DB.Limit(num)}
 }
-
 
 func (conn *dbConnection) Table(table interface{}) repositories.DBConnection {
 	return &dbConnection{DB: conn.DB.Model(table)}
@@ -133,12 +136,11 @@ func (conn *dbConnection) SelectBookWithPublisherName() repositories.DBConnectio
 	}
 }
 
+// todo select外に出して、groupのメソッド作れば消せそう
 func (conn *dbConnection) GroupByDate(key, format string) repositories.DBConnection {
 	q := fmt.Sprintf("DATE_FORMAT(%s, '%s') as time , count(*) as count", key, format)
-	wq := fmt.Sprintf("%s is not null", key)
 	return &dbConnection{DB: conn.DB.Table("books").
 		Select(q).
-		Where(wq).
 		Group("time"),
 	}
 }

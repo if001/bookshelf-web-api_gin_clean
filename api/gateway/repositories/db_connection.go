@@ -3,6 +3,7 @@ package repositories
 type DBConnection interface {
 	Bind(bind interface{}) DBConnection
 	Where(filter interface{}) DBConnection
+	RowWhere(query string) DBConnection
 	Like(key, filter string) DBConnection
 	OrLike(key, filter string) DBConnection
 	Paginate(page, perPage uint64) DBConnection

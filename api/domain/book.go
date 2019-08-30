@@ -202,7 +202,15 @@ type CountedDate struct {
 
 type CountedDates []CountedDate
 
+// like文のフォーマットを指定するkey
 const (
-	DateKeyDaily="daily"
-	DateKeyMonthly="monthly"
+	DateKeyDaily   = "daily"
+	DateKeyMonthly = "monthly"
+)
+
+// whereに指定するkey
+const (
+	BookRegister  = "register"
+	BookReadStart = "start_at"
+	BookReadEnd   = "end_at"
 )

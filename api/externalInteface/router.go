@@ -32,7 +32,10 @@ func Router() *gin.Engine {
 		authorized.PUT("/books", b.UpdateBook)
 		authorized.GET("/books/counted/author", b.GetCountedByAuthor)
 		authorized.GET("/books/counted/publisher", b.GetCountedByPublisher)
-		authorized.GET("/books/counted/daily", b.GetCountedDaily)
+		authorized.GET("/books/counted/daily/register", b.GetCountedRegisterDaily)
+		authorized.GET("/books/counted/daily/start", b.GetCountedStartDaily)
+		authorized.GET("/books/counted/daily/end", b.GetCountedEndDaily)
+
 		authorized.GET("/books/counted/monthly", b.GetCountedMonthly)
 
 		authorized.GET("/book/:id", b.GetBook)
