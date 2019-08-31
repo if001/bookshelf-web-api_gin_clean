@@ -5,6 +5,7 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type dbConnection struct {
@@ -161,7 +162,8 @@ func NewSqlConnection(url string) dbConnection {
 		// log.Errorf(ctx, "gormOpen: %s", err)
 	}
 	db.LogMode(true)
-
+	db.DB().SetConnMaxLifetime(60 * time.Second)
+	db.DB().SetMaxIdleConns(0)
 	// defer db.Close()
 	return dbConnection{DB: db}
 }
