@@ -1,11 +1,13 @@
 package controllers
 
 import (
-	"bookshelf-web-api_gin_clean/api/usecases"
-	"github.com/gin-gonic/gin"
-	"bookshelf-web-api_gin_clean/api/gateway/repositories"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	"bookshelf-web-api_gin_clean/api/usecases"
+	"bookshelf-web-api_gin_clean/api/gateway/repositories"
 	"bookshelf-web-api_gin_clean/api/domain"
 )
 
@@ -32,7 +34,7 @@ func (a *authorController) GetCountedAuthors(c *gin.Context) {
 	authors, err := a.UseCase.GetAllAuthor()
 	if err != nil {
 		log.Println("GetCountedAuthors: ", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusInternalServerError})
+		internalServerErrorWithSentry(c, "GetCountedAuthors: ", err)
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: authors})
@@ -43,7 +45,7 @@ func (a *authorController) CreateAuthor(c *gin.Context) {
 	err := c.ShouldBind(&form)
 	if err != nil {
 		log.Println("CreateAuthor: ", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		badRequestWithSentry(c, "CreateAuthor: ", err)
 		return
 	}
 
@@ -52,7 +54,7 @@ func (a *authorController) CreateAuthor(c *gin.Context) {
 	newAuthor, err := a.UseCase.CreateAuthor(author)
 	if err != nil {
 		log.Println("CreateAuthor: ", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
+		internalServerErrorWithSentry(c, "CreateAuthor: ", err)
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: newAuthor})

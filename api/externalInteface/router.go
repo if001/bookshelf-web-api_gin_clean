@@ -1,16 +1,32 @@
 package externalInteface
 
 import (
-	"bookshelf-web-api_gin_clean/api/externalInteface/database"
-	"bookshelf-web-api_gin_clean/api/gateway/controllers"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/getsentry/raven-go"
+	"github.com/gin-contrib/sentry"
+
+	"bookshelf-web-api_gin_clean/api/externalInteface/database"
+	"bookshelf-web-api_gin_clean/api/gateway/controllers"
 )
+
+func initSentry() {
+	dsn := "https://77e779a8fbfe42eca6650b9cc6a0cd52:34460e1b82fe4908ab72983843e2218e@app.getsentry.com/1546961"
+	err := raven.SetDSN(dsn)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
 
 func Router() *gin.Engine {
 	router := gin.New()
-	router.Use(gin.Logger(), gin.Recovery(), Options())
+
+	initSentry()
+
+	router.Use(gin.Logger(), sentry.Recovery(raven.DefaultClient, false), Options())
+	// router.Use(gin.Logger(), gin.Recovery(), Options())
 
 	router.GET("/health", func(c *gin.Context) { c.JSON(http.StatusOK, "ok"); return })
 

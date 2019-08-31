@@ -1,12 +1,14 @@
 package controllers
 
 import (
+	"log"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+
 	"bookshelf-web-api_gin_clean/api/domain"
 	"bookshelf-web-api_gin_clean/api/gateway/repositories"
 	"bookshelf-web-api_gin_clean/api/usecases"
-	"github.com/gin-gonic/gin"
-	"log"
-	"net/http"
 )
 
 type PublisherForm struct {
@@ -33,7 +35,7 @@ func (p *publisherController) GetCountedPublishers(c *gin.Context) {
 	publishers, err := p.UseCase.GetAllPublisher()
 	if err != nil {
 		log.Println("GetCountedPublishers: ", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusInternalServerError})
+		internalServerErrorWithSentry(c, "GetCountedPublishers: ", err)
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: publishers})
@@ -44,7 +46,7 @@ func (p *publisherController) CreatePublisher(c *gin.Context) {
 	err := c.ShouldBind(&form)
 	if err != nil {
 		log.Println("CreatePublisher: ", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		badRequestWithSentry(c, "CreatePublisher: ", err)
 		return
 	}
 
@@ -53,7 +55,7 @@ func (p *publisherController) CreatePublisher(c *gin.Context) {
 	newPublisher, err := p.UseCase.CreatePublisher(publisher)
 	if err != nil {
 		log.Println("CreatePublisher: ", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
+		internalServerErrorWithSentry(c, "CreatePublisher: ", err)
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: newPublisher})

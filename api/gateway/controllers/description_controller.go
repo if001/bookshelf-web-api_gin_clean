@@ -1,12 +1,14 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
-	"bookshelf-web-api_gin_clean/api/usecases"
-	"bookshelf-web-api_gin_clean/api/gateway/repositories"
 	"strconv"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	"bookshelf-web-api_gin_clean/api/usecases"
+	"bookshelf-web-api_gin_clean/api/gateway/repositories"
 	"bookshelf-web-api_gin_clean/api/domain"
 )
 
@@ -36,14 +38,14 @@ func (d descriptionController) GetAllDescriptions(c *gin.Context) {
 	bookId, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		log.Println("GetAllDescriptions: ", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		badRequestWithSentry(c, "GetAllDescriptions: ", err)
 		return
 	}
 
 	page, perPage, err := GetPaginate(c)
 	if err != nil {
 		log.Println("GetPaginate: ", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusInternalServerError})
+		badRequestWithSentry(c, "GetAllDescriptions: ", err)
 		return
 	}
 
@@ -52,8 +54,8 @@ func (d descriptionController) GetAllDescriptions(c *gin.Context) {
 
 	description, err := d.UseCase.GetAllDescriptions(filter, page, perPage)
 	if err != nil {
-		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusNotFound)})
+		log.Println("GetAllDescriptions: ", err.Error())
+		internalServerErrorWithSentry(c, "GetAllDescriptions: ", err)
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: description})
@@ -62,16 +64,16 @@ func (d descriptionController) GetAllDescriptions(c *gin.Context) {
 func (d descriptionController) CreateDescription(c *gin.Context) {
 	bookId, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		log.Println("GetAllDescriptions: ", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		log.Println("CreateDescription: ", err.Error())
+		badRequestWithSentry(c, "CreateDescription", err)
 		return
 	}
 
 	form := DescriptionForm{}
 	err = c.ShouldBind(&form)
 	if err != nil {
-		log.Println("GetAllDescriptions: ", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		log.Println("CreateDescription: ", err.Error())
+		badRequestWithSentry(c, "CreateDescription: ", err)
 		return
 	}
 
@@ -82,8 +84,8 @@ func (d descriptionController) CreateDescription(c *gin.Context) {
 
 	newDescription, err := d.UseCase.CreateDescription(description)
 	if err != nil {
-		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusNotFound)})
+		log.Println("CreateDescription: ", err.Error())
+		internalServerErrorWithSentry(c, "CreateDescription: ", err)
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: newDescription})
@@ -93,7 +95,7 @@ func (d descriptionController) DeleteDescription(c *gin.Context) {
 	descriptionId, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		log.Println("GetAllDescriptions: ", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		badRequestWithSentry(c, "DeleteDescription: ", err)
 		return
 	}
 	description := domain.Description{}
@@ -101,8 +103,8 @@ func (d descriptionController) DeleteDescription(c *gin.Context) {
 
 	err = d.UseCase.DeleteDescription(description)
 	if err != nil {
-		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusNotFound)})
+		log.Println("DeleteDescription: ", err.Error())
+		internalServerErrorWithSentry(c, "DeleteDescription: ", err)
 		return
 	}
 	c.Status(http.StatusOK)

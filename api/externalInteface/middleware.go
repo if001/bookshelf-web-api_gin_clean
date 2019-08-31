@@ -4,13 +4,14 @@ import (
 	"context"
 	"firebase.google.com/go"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 func authMiddlewareTest() gin.HandlerFunc {
@@ -74,11 +75,11 @@ func Options() gin.HandlerFunc {
 		c.Header("Allow", "HEAD,GET,POST,PUT,PATCH,DELETE,OPTIONS")
 		c.Header("Content-Type", "application/json")
 		if c.Request.Method == "OPTIONS" {
-			fmt.Println("option")
+			// fmt.Println("option")
 			c.AbortWithStatus(http.StatusOK)
 			return
 		} else {
-			fmt.Println("not option")
+			// fmt.Println("not option")
 			c.Next()
 		}
 	}

@@ -1,18 +1,18 @@
 package controllers
 
 import (
-	"github.com/go-sql-driver/mysql"
 	"net/http"
 	"time"
+	"errors"
+	"log"
+	"strconv"
 
 	"bookshelf-web-api_gin_clean/api/gateway/repositories"
 	"bookshelf-web-api_gin_clean/api/usecases"
-
 	"bookshelf-web-api_gin_clean/api/domain"
-	"errors"
+
+	"github.com/go-sql-driver/mysql"
 	"github.com/gin-gonic/gin"
-	"log"
-	"strconv"
 )
 
 type bookController struct {
@@ -88,18 +88,16 @@ func (b *bookController) GetAllBooks(c *gin.Context) {
 		usecases.ByISBN(filter, isbn)
 	}
 
-	accountId, ok := c.MustGet("account_id").(string)
-	if !ok {
-		log.Println("GetBook: ", errors.New("accountId parser error"))
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+	filter, err := addAccountToFilter(c, &filter)
+	if err != nil {
+		badRequestWithSentry(c, "GetAllBooks: ", err)
 		return
 	}
-	usecases.ByAccountId(filter, accountId)
+
 
 	page, perPage, err := GetPaginate(c)
 	if err != nil {
-		log.Println("GetPaginate: ", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusBadRequest})
+		badRequestWithSentry(c, "GetAllBooks: ", err)
 		return
 	}
 
@@ -109,8 +107,7 @@ func (b *bookController) GetAllBooks(c *gin.Context) {
 	if readStatusStr != "" {
 		readStatus, err := parseStatus(readStatusStr)
 		if err != nil {
-			log.Println("GetPaginate: ", err.Error())
-			c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusBadRequest})
+			badRequestWithSentry(c, "GetAllBooks: ", err)
 			return
 		}
 		usecases.ByStatus(filter, *readStatus)
@@ -123,8 +120,7 @@ func (b *bookController) GetAllBooks(c *gin.Context) {
 
 	books, err := b.UseCase.GetAllBooks(filter, page, perPage, sortKey)
 	if err != nil {
-		log.Println("GetAllBooks: ", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusInternalServerError})
+		internalServerErrorWithSentry(c, "GetAllBooks: ", err)
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: books})
@@ -133,25 +129,23 @@ func (b *bookController) GetAllBooks(c *gin.Context) {
 func (b *bookController) GetBook(c *gin.Context) {
 	bookId, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		log.Println("GetBook: ", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
-		return
-	}
-	accountId, ok := c.MustGet("account_id").(string)
-	if !ok {
-		log.Println("GetBook: ", errors.New("accountId parser error"))
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		badRequestWithSentry(c, "GetBook: ", err)
 		return
 	}
 
 	filter := usecases.NewFilter()
+
+	filter, err = addAccountToFilter(c, &filter)
+	if err != nil {
+		badRequestWithSentry(c, "GetBook: ", err)
+		return
+	}
+
 	usecases.ById(filter, bookId)
-	usecases.ByAccountId(filter, accountId)
 
 	book, err := b.UseCase.GetBook(filter)
 	if err != nil {
-		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
+		internalServerErrorWithSentry(c, "GetBook: ", err)
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: book})
@@ -161,17 +155,16 @@ func (b *bookController) CreateBook(c *gin.Context) {
 	form := BookForm{}
 	err := c.ShouldBind(&form)
 	if err != nil {
-		log.Println("CreateBook: ", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		badRequestWithSentry(c, "CreateBook: ", err)
 		return
 	}
 
 	accountId, ok := c.MustGet("account_id").(string)
 	if !ok {
-		log.Println("CreateBook: ", errors.New("accountId parser error"))
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		internalServerErrorWithSentry(c, "CreateBook: ", errors.New("accountId parser error"))
 		return
 	}
+
 	book := domain.NewBook()
 	book.Title = form.Title
 	book.AccountID = accountId
@@ -201,7 +194,7 @@ func (b *bookController) CreateBook(c *gin.Context) {
 	newBook, err := b.UseCase.CreateBook(book)
 	if err != nil {
 		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
+		internalServerErrorWithSentry(c, "CreateBook: ", err)
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: newBook})
@@ -211,13 +204,13 @@ func (b *bookController) ChangeBookStatus(c *gin.Context) {
 	bookId, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		log.Println("ChangeBookStatus: ", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		badRequestWithSentry(c, "ChangeBookStatus: ", err)
 		return
 	}
 	accountId, ok := c.MustGet("account_id").(string)
 	if !ok {
-		log.Println("ChangeBookStatus: ", errors.New("accountId parser error"))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
+		log.Println("ChangeBookStatus: ", )
+		badRequestWithSentry(c, "ChangeBookStatus: ", errors.New("accountId parser error"))
 		return
 	}
 	filter := usecases.NewFilter()
@@ -227,7 +220,7 @@ func (b *bookController) ChangeBookStatus(c *gin.Context) {
 	err = b.UseCase.ChangeStatus(filter)
 	if err != nil {
 		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
+		internalServerErrorWithSentry(c, "ChangeBookStatus: ", err)
 		return
 	}
 	c.Status(http.StatusOK)
@@ -237,13 +230,13 @@ func (b *bookController) DeleteBook(c *gin.Context) {
 	bookId, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		log.Println("DeleteBook: ", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		badRequestWithSentry(c, "DeleteBook: ", err)
 		return
 	}
 	accountId, ok := c.MustGet("account_id").(string)
 	if !ok {
 		log.Println("DeleteBook: ", errors.New("accountId parser error"))
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		badRequestWithSentry(c, "DeleteBook: ", err)
 		return
 	}
 	bookFilter := usecases.NewFilter()
@@ -253,7 +246,7 @@ func (b *bookController) DeleteBook(c *gin.Context) {
 	err = b.UseCase.DeleteBook(bookFilter)
 	if err != nil {
 		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
+		internalServerErrorWithSentry(c, "DeleteBook: ", err)
 		return
 	}
 	c.Status(http.StatusOK)
@@ -264,13 +257,13 @@ func (b *bookController) UpdateBook(c *gin.Context) {
 	err := c.ShouldBind(&form)
 	if err != nil {
 		log.Println("UpdateBook: ", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		badRequestWithSentry(c, "UpdateBook: ", err)
 		return
 	}
 	accountId, ok := c.MustGet("account_id").(string)
 	if !ok {
 		log.Println("UpdateBook: ", errors.New("accountId parser error"))
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		badRequestWithSentry(c, "UpdateBook: ", err)
 		return
 	}
 
@@ -280,7 +273,7 @@ func (b *bookController) UpdateBook(c *gin.Context) {
 	book, err := b.UseCase.GetBook(filter)
 	if err != nil {
 		log.Println("UpdateBook: ", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		badRequestWithSentry(c, "UpdateBook: ", err)
 		return
 	}
 
@@ -320,14 +313,14 @@ func (b *bookController) UpdateBook(c *gin.Context) {
 	} else if form.StartAt != nil && form.EndAt == nil {
 		book.ReadState = domain.ReadValue
 	} else {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "bad read state"})
+		internalServerErrorWithSentry(c, "UpdateBook: ", errors.New("bad read state"))
 		return
 	}
 
 	updatedBook, err := b.UseCase.UpdateBook(*book, nil)
 	if err != nil {
 		log.Println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusText(http.StatusInternalServerError)})
+		internalServerErrorWithSentry(c, "UpdateBook: ", err)
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: updatedBook})
@@ -338,14 +331,14 @@ func (b *bookController) GetCountedByAuthor(c *gin.Context) {
 	filter, err := addAccountToFilter(c, &filter)
 	if err != nil {
 		log.Println("GetCountedByAuthor: ", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		badRequestWithSentry(c, "GetCountedByAuthor: ", err)
 		return
 	}
 
 	authorCountedByName, err := b.UseCase.CountByName(filter, "author")
 	if err != nil {
-		log.Println("GetAllBooks: ", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusInternalServerError})
+		log.Println("GetCountedByAuthor: ", err.Error())
+		internalServerErrorWithSentry(c, "GetCountedByAuthor: ", err)
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: authorCountedByName})
@@ -356,14 +349,14 @@ func (b *bookController) GetCountedByPublisher(c *gin.Context) {
 	filter, err := addAccountToFilter(c, &filter)
 	if err != nil {
 		log.Println("GetCountedByPublisher: ", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		badRequestWithSentry(c, "GetCountedByPublisher: ", err)
 		return
 	}
 
 	countedByName, err := b.UseCase.CountByName(filter, "publisher")
 	if err != nil {
 		log.Println("GetAllBooks: ", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusInternalServerError})
+		internalServerErrorWithSentry(c, "GetCountedByPublisher: ", err)
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: countedByName})
@@ -401,6 +394,7 @@ func getCountedDaily(c *gin.Context, b *bookController, dateKey string) (counted
 	filter, err := addAccountToFilter(c, &filter)
 	if err != nil {
 		log.Println("GetCountedDaily: ", err.Error())
+		sentryLogWarning("GetCountedDaily: ", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
 		return
 	}
@@ -408,6 +402,7 @@ func getCountedDaily(c *gin.Context, b *bookController, dateKey string) (counted
 	countedDate, err = b.UseCase.CountByDate(filter, dateKey, domain.DateKeyDaily)
 	if err != nil {
 		log.Println("GetCountedDaily: ", err.Error())
+		sentryLogError("GetCountedDaily: ", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": http.StatusInternalServerError})
 		return
 	}
@@ -421,14 +416,14 @@ func (b *bookController) GetCountedMonthly(c *gin.Context) {
 	filter, err := addAccountToFilter(c, &filter)
 	if err != nil {
 		log.Println("GetCountedMonthly: ", err.Error())
-		c.JSON(http.StatusBadRequest, gin.H{"error": http.StatusText(http.StatusBadRequest)})
+		badRequestWithSentry(c, "GetCountedMonthly: ", err)
 		return
 	}
 
 	countedDate, err := b.UseCase.CountByDate(filter, "end_at", domain.DateKeyMonthly)
 	if err != nil {
 		log.Println("GetCountedMonthly: ", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": http.StatusInternalServerError})
+		internalServerErrorWithSentry(c, "GetCountedMonthly: ", err)
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: countedDate})
