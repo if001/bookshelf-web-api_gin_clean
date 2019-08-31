@@ -299,7 +299,6 @@ func (b *BookRepository) CountByDate(filter map[string]interface{}, key, format 
 	} else if key == domain.BookReadStart {
 		query = query.
 			RowWhere(fmt.Sprintf("%s is not null", key)).
-			RowWhere("end_at is null").
 			GroupByDate(key, format)
 	} else if key == domain.BookReadEnd {
 		query = query.
