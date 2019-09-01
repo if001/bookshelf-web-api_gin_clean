@@ -297,13 +297,13 @@ func (b *bookController) UpdateBook(c *gin.Context) {
 	if form.StartAt != nil {
 		book.StartAt = domain.NullTime{NullTime: mysql.NullTime{Time: *form.StartAt, Valid: true}}
 	} else {
-		book.StartAt = domain.NullTime{NullTime: mysql.NullTime{Time: time.Now(), Valid: false}}
+		book.StartAt = domain.NullTime{NullTime: mysql.NullTime{Time: domain.JstNow(), Valid: false}}
 	}
 
 	if form.EndAt != nil {
 		book.EndAt = domain.NullTime{NullTime: mysql.NullTime{Time: *form.EndAt, Valid: true}}
 	} else {
-		book.EndAt = domain.NullTime{NullTime: mysql.NullTime{Time: time.Now(), Valid: false}}
+		book.EndAt = domain.NullTime{NullTime: mysql.NullTime{Time: domain.JstNow(), Valid: false}}
 	}
 
 	if form.StartAt == nil && form.EndAt == nil {

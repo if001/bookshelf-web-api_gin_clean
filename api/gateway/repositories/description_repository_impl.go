@@ -5,7 +5,6 @@ import (
 	"bookshelf-web-api_gin_clean/api/domain"
 	"fmt"
 	"errors"
-	"time"
 )
 
 type DescriptionRepository struct {
@@ -63,7 +62,7 @@ func (d *DescriptionRepository) Create(description domain.Description) (desc *do
 		return
 	}
 
-	book.UpdatedAt = time.Now()
+	book.UpdatedAt = domain.JstNow()
 	err = tx.Update(&book).HasError()
 	if err != nil {
 		err = fmt.Errorf("description create: %s", err)

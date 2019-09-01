@@ -1,10 +1,10 @@
 package domain
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"github.com/go-sql-driver/mysql"
-	"bytes"
 	"time"
 )
 
@@ -47,7 +47,7 @@ func (nt *NullTime) UnmarshalJSON(data []byte) error {
 		nt.Valid = false
 		return nil
 	}
-	now := time.Now()
+	now := JstNow()
 	err := nt.UnmarshalJSON(data)
 
 	if err != nil {
@@ -57,4 +57,9 @@ func (nt *NullTime) UnmarshalJSON(data []byte) error {
 	nt.Time = now
 
 	return nil
+}
+
+func JstNow() time.Time {
+	jst, _ := time.LoadLocation("Asia/Tokyo")
+	return time.Now().In(jst)
 }

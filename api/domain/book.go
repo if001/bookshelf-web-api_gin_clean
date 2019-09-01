@@ -2,7 +2,6 @@ package domain
 
 import (
 	"github.com/go-sql-driver/mysql"
-	"time"
 )
 
 type Book struct {
@@ -32,10 +31,10 @@ func NewBook() Book {
 	b.AccountID = ""
 	b.Author = nil
 	b.Publisher = nil
-	b.StartAt = NullTime{mysql.NullTime{Time: time.Now(), Valid: false}}
-	b.EndAt = NullTime{mysql.NullTime{Time: time.Now(), Valid: false}}
-	b.UpdatedAt = time.Now()
-	b.CreatedAt = time.Now()
+	b.StartAt = NullTime{mysql.NullTime{Time: JstNow(), Valid: false}}
+	b.EndAt = NullTime{mysql.NullTime{Time: JstNow(), Valid: false}}
+	b.UpdatedAt = JstNow()
+	b.CreatedAt = JstNow()
 	b.SmallImageUrl = nil
 	b.MediumImageUrl = nil
 	return b
@@ -67,12 +66,12 @@ const (
 //}
 
 func (b *Book) SetStartState() {
-	b.StartAt = NullTime{mysql.NullTime{Time: time.Now(), Valid: true}}
+	b.StartAt = NullTime{mysql.NullTime{Time: JstNow(), Valid: true}}
 	b.EndAt = NullTime{mysql.NullTime{Valid: false}}
 	b.ReadState = ReadingValue
 }
 func (b *Book) SetEndState() {
-	b.EndAt = NullTime{mysql.NullTime{Time: time.Now(), Valid: true}}
+	b.EndAt = NullTime{mysql.NullTime{Time: JstNow(), Valid: true}}
 	b.ReadState = ReadValue
 }
 
