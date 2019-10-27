@@ -25,7 +25,7 @@ type OgpController interface {
 	TemplateWithOGPHeader(c *gin.Context)
 }
 
-const shareURL = "https://bookstorage.degwbs.net/share/%d"
+const shareURL = "https://bookstorage.edgwbs.net/share/%d"
 
 func (o *ogpController) TemplateWithOGPHeader(c *gin.Context) {
 	bookId, err := strconv.ParseUint(c.Param("id"), 10, 64)

@@ -1,7 +1,11 @@
 # readme
 gingonic + クリーンアーキテクチャー
+## run
+```
+$GO111MODULE=on go run api/server.go 
+```
 
-
+## gae
 アカウントの切り替え
 ```
 $ gcloud auth login
