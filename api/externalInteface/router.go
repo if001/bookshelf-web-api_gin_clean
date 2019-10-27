@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"github.com/getsentry/raven-go"
 	"github.com/gin-contrib/sentry"
+	"github.com/gin-gonic/gin"
 
 	"bookshelf-web-api_gin_clean/api/externalInteface/database"
 	"bookshelf-web-api_gin_clean/api/gateway/controllers"
@@ -29,6 +29,7 @@ func Router() *gin.Engine {
 	// router.Use(gin.Logger(), gin.Recovery(), Options())
 
 	router.GET("/health", func(c *gin.Context) { c.JSON(http.StatusOK, "ok"); return })
+	router.LoadHTMLGlob("api/externalInteface/html_templates//*.html")
 
 	config := LoadConfig()
 
@@ -38,6 +39,9 @@ func Router() *gin.Engine {
 	d := controllers.NewDescriptionController(&conn)
 	a := controllers.NewAuthorController(&conn)
 	p := controllers.NewPublisherController(&conn)
+	s := controllers.NewOgpController(&conn)
+
+	router.GET("/book/:id/share", s.TemplateWithOGPHeader)
 
 	authorized := router.Group("/")
 	authorized.Use(authMiddleware())
