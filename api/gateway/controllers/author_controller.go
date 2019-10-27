@@ -6,9 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"bookshelf-web-api_gin_clean/api/usecases"
-	"bookshelf-web-api_gin_clean/api/gateway/repositories"
 	"bookshelf-web-api_gin_clean/api/domain"
+	"bookshelf-web-api_gin_clean/api/gateway/repositories"
+	"bookshelf-web-api_gin_clean/api/usecases"
 )
 
 type AuthorForm struct {

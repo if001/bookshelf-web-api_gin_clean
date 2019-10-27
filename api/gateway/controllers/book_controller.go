@@ -1,18 +1,18 @@
 package controllers
 
 import (
-	"net/http"
-	"time"
 	"errors"
 	"log"
+	"net/http"
 	"strconv"
+	"time"
 
+	"bookshelf-web-api_gin_clean/api/domain"
 	"bookshelf-web-api_gin_clean/api/gateway/repositories"
 	"bookshelf-web-api_gin_clean/api/usecases"
-	"bookshelf-web-api_gin_clean/api/domain"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/gin-gonic/gin"
+	"github.com/go-sql-driver/mysql"
 )
 
 type bookController struct {
@@ -93,7 +93,6 @@ func (b *bookController) GetAllBooks(c *gin.Context) {
 		badRequestWithSentry(c, "GetAllBooks: ", err)
 		return
 	}
-
 
 	page, perPage, err := GetPaginate(c)
 	if err != nil {
@@ -194,7 +193,10 @@ func (b *bookController) CreateBook(c *gin.Context) {
 	newBook, err := b.UseCase.CreateBook(book)
 	if err != nil {
 		log.Println(err.Error())
-		internalServerErrorWithSentry(c, "CreateBook: ", err)
+		if gin.Mode() == gin.ReleaseMode {
+			sentryLogError("CreateBook: ", err)
+		}
+		c.JSON(http.StatusBadRequest, Response{Content: book})
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: newBook})
@@ -209,7 +211,7 @@ func (b *bookController) ChangeBookStatus(c *gin.Context) {
 	}
 	accountId, ok := c.MustGet("account_id").(string)
 	if !ok {
-		log.Println("ChangeBookStatus: ", )
+		log.Println("ChangeBookStatus: ")
 		badRequestWithSentry(c, "ChangeBookStatus: ", errors.New("accountId parser error"))
 		return
 	}
