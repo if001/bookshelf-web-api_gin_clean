@@ -36,7 +36,7 @@ func (o *ogpController) TemplateWithOGPHeader(c *gin.Context) {
 	}
 
 	ua := c.GetHeader("user-agent")
-	if ua == "Twitterbot" {
+	if ua == "Twitterbot/1.0" {
 		filter := usecases.NewFilter()
 		usecases.ById(filter, bookId)
 		book, err := o.UseCase.GetBook(filter)
