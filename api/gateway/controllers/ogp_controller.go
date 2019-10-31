@@ -36,7 +36,7 @@ func (o *ogpController) TemplateWithOGPHeader(c *gin.Context) {
 	}
 
 	ua := c.GetHeader("user-agent")
-	if ua == "Twitterbot/1.0" {
+	if isTwitter(ua) {
 		filter := usecases.NewFilter()
 		usecases.ById(filter, bookId)
 		book, err := o.UseCase.GetBook(filter)
@@ -48,6 +48,7 @@ func (o *ogpController) TemplateWithOGPHeader(c *gin.Context) {
 			"SiteURL":  fmt.Sprintf(shareURL, book.ID),
 			"ImageURL": book.MediumImageUrl,
 		}
+		c.Header("Content-Type", "text/html")
 		c.HTML(http.StatusOK, "ogp_header.html", obj)
 		c.Abort()
 		return
@@ -57,4 +58,8 @@ func (o *ogpController) TemplateWithOGPHeader(c *gin.Context) {
 		c.Abort()
 		return
 	}
+}
+
+func isTwitter(ua string) bool {
+	return ua == "twitterbot/1.0" || ua == "Twitterbot" || ua == "twitterbot" || ua == "Twitterbot/1.0"
 }

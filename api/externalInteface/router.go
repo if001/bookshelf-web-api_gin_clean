@@ -23,13 +23,13 @@ func initSentry() {
 func Router() *gin.Engine {
 	router := gin.New()
 
+	router.LoadHTMLGlob("api/externalInteface/html_templates/*.html")
 	initSentry()
 
 	router.Use(gin.Logger(), sentry.Recovery(raven.DefaultClient, false), Options())
 	// router.Use(gin.Logger(), gin.Recovery(), Options())
 
 	router.GET("/health", func(c *gin.Context) { c.JSON(http.StatusOK, "ok"); return })
-	router.LoadHTMLGlob("api/externalInteface/html_templates//*.html")
 
 	config := LoadConfig()
 
