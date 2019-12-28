@@ -22,6 +22,7 @@ type bookController struct {
 type BookController interface {
 	GetAllBooks(c *gin.Context)
 	GetBook(c *gin.Context)
+	GetBookLimit(c *gin.Context)
 	CreateBook(c *gin.Context)
 	ChangeBookStatus(c *gin.Context)
 	DeleteBook(c *gin.Context)
@@ -148,6 +149,50 @@ func (b *bookController) GetBook(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, Response{Content: book})
+}
+
+func (b *bookController) GetBookLimit(c *gin.Context) {
+	type LimitBook struct {
+		Title          string              `json:"title"`
+		Isbn           *string             `json:"isbn"`
+		Author         *domain.Author      `json:"author"`
+		Publisher      *domain.Publisher   `json:"publisher"`
+		Descriptions   domain.Descriptions `json:"descriptions"`
+		SmallImageUrl  *string             `json:"small_image_url"`
+		MediumImageUrl *string             `json:"medium_image_url"`
+		ItemUrl        *string             `json:"item_url"`
+		AffiliateUrl   *string             `json:"affiliate_url"`
+	}
+
+	bookId, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		badRequestWithSentry(c, "GetBook: ", err)
+		return
+	}
+
+	filter := usecases.NewFilter()
+
+	usecases.ById(filter, bookId)
+
+	book, err := b.UseCase.GetBook(filter)
+	if err != nil {
+		internalServerErrorWithSentry(c, "GetBook: ", err)
+		return
+	}
+
+	limitBook := LimitBook{
+		book.Title,
+		book.Isbn,
+		book.Author,
+		book.Publisher,
+		book.Descriptions,
+		book.SmallImageUrl,
+		book.MediumImageUrl,
+		book.ItemUrl,
+		book.AffiliateUrl,
+	}
+
+	c.JSON(http.StatusOK, Response{Content: limitBook})
 }
 
 func (b *bookController) CreateBook(c *gin.Context) {

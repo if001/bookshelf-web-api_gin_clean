@@ -42,6 +42,7 @@ func Router() *gin.Engine {
 	s := controllers.NewOgpController(&conn)
 
 	router.GET("/book/:id/share", s.TemplateWithOGPHeader)
+	router.GET("/book_limited/:id", b.GetBookLimit)
 
 	authorized := router.Group("/")
 	authorized.Use(authMiddleware())
