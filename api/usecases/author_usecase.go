@@ -10,6 +10,7 @@ type authorUseCase struct {
 type AuthorUseCase interface {
 	GetAllAuthor() (*domain.CountedAuthors, error)
 	CreateAuthor(createAuthor domain.Author) (*domain.Author, error)
+	GetAuthor(filter map[string]interface{}) (*domain.Author, error)
 }
 
 func NewAuthorUseCase(authorRepo AuthorRepository) AuthorUseCase {
@@ -30,4 +31,8 @@ func (a *authorUseCase) CreateAuthor(createAuthor domain.Author) (*domain.Author
 		return nil, err
 	}
 	return author, nil
+}
+
+func (a *authorUseCase) GetAuthor(filter map[string]interface{}) (*domain.Author, error) {
+	return a.AuthorRepo.Find(filter)
 }

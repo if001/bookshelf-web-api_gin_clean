@@ -31,3 +31,7 @@ func ByISBN(filter map[string]interface{}, isbn string) {
 func ByBook(filter map[string]interface{}, isbn string) {
 	filter["book"] = isbn
 }
+
+func ByName(filter map[string]interface{}, name string) {
+	filter["name"] = name
+}

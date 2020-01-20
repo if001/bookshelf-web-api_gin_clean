@@ -16,7 +16,9 @@ import (
 )
 
 type bookController struct {
-	UseCase usecases.BookUseCase
+	UseCase          usecases.BookUseCase
+	AuthorUseCase    usecases.AuthorUseCase
+	PublisherUseCase usecases.PublisherUseCase
 }
 
 type BookController interface {
@@ -24,6 +26,7 @@ type BookController interface {
 	GetBook(c *gin.Context)
 	GetBookLimit(c *gin.Context)
 	CreateBook(c *gin.Context)
+	CreateBookWith(c *gin.Context)
 	ChangeBookStatus(c *gin.Context)
 	DeleteBook(c *gin.Context)
 	UpdateBook(c *gin.Context)
@@ -46,6 +49,17 @@ type BookForm struct {
 	Isbn           *string `json:"isbn"`
 	AuthorID       *uint64 `json:"author_id"`
 	PublisherID    *uint64 `json:"publisher_id"`
+	SmallImageUrl  *string `json:"small_image_url"`
+	MediumImageUrl *string `json:"medium_image_url"`
+	ItemUrl        *string `json:"item_url"`
+	AffiliateUrl   *string `json:"affiliate_url"`
+}
+
+type BookFormWith struct {
+	Title          string  `json:"title" binding:"required"`
+	Isbn           *string `json:"isbn"`
+	AuthorName     *string `json:"author_name"`
+	PublisherName  *string `json:"publisher_name"`
 	SmallImageUrl  *string `json:"small_image_url"`
 	MediumImageUrl *string `json:"medium_image_url"`
 	ItemUrl        *string `json:"item_url"`
@@ -227,6 +241,84 @@ func (b *bookController) CreateBook(c *gin.Context) {
 		book.Publisher = &publisher
 	} else {
 		book.Publisher = nil
+	}
+	book.Isbn = form.Isbn
+	book.SmallImageUrl = form.SmallImageUrl
+	book.MediumImageUrl = form.MediumImageUrl
+	book.ItemUrl = form.ItemUrl
+	book.AffiliateUrl = form.AffiliateUrl
+	book.ReadState = domain.NotReadValue
+
+	newBook, err := b.UseCase.CreateBook(book)
+	if err != nil {
+		log.Println(err.Error())
+		if gin.Mode() == gin.ReleaseMode {
+			sentryLogError("CreateBook: ", err)
+		}
+		c.JSON(http.StatusBadRequest, Response{Content: book})
+		return
+	}
+	c.JSON(http.StatusOK, Response{Content: newBook})
+}
+
+func (b *bookController) CreateBookWith(c *gin.Context) {
+	form := BookFormWith{}
+	err := c.ShouldBind(&form)
+	if err != nil {
+		badRequestWithSentry(c, "CreateBook: ", err)
+		return
+	}
+
+	accountId, ok := c.MustGet("account_id").(string)
+	if !ok {
+		internalServerErrorWithSentry(c, "CreateBook: ", errors.New("accountId parser error"))
+		return
+	}
+
+	book := domain.NewBook()
+	book.Title = form.Title
+	book.AccountID = accountId
+
+	if form.AuthorName != nil {
+		aFilter := usecases.NewFilter()
+		usecases.ByName(aFilter, *form.AuthorName)
+		author, err := b.AuthorUseCase.GetAuthor(aFilter)
+		if err != nil {
+			internalServerErrorWithSentry(c, "GetAuthor: ", err)
+		}
+		book.Author = author
+		if author == nil {
+			createAuthor := domain.Author{}
+			createAuthor.Name = *form.AuthorName
+			newAuthor, err := b.AuthorUseCase.CreateAuthor(createAuthor)
+			if err != nil {
+				log.Println("CreateAuthor: ", err.Error())
+				internalServerErrorWithSentry(c, "CreateAuthor: ", err)
+				return
+			}
+			book.Author = newAuthor
+		}
+	}
+
+	if form.PublisherName != nil {
+		pFilter := usecases.NewFilter()
+		usecases.ByName(pFilter, *form.PublisherName)
+		publisher, err := b.PublisherUseCase.GetPublisher(pFilter)
+		if err != nil {
+			internalServerErrorWithSentry(c, "GetPublisher: ", err)
+		}
+		book.Publisher = publisher
+		if publisher == nil {
+			createPublisher := domain.Publisher{}
+			createPublisher.Name = *form.PublisherName
+			newPublisher, err := b.PublisherUseCase.CreatePublisher(createPublisher)
+			if err != nil {
+				log.Println("CreatePublisher: ", err.Error())
+				internalServerErrorWithSentry(c, "CreatePublisher: ", err)
+				return
+			}
+			book.Publisher = newPublisher
+		}
 	}
 	book.Isbn = form.Isbn
 	book.SmallImageUrl = form.SmallImageUrl

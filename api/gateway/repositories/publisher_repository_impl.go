@@ -3,6 +3,7 @@ package repositories
 import (
 	"bookshelf-web-api_gin_clean/api/domain"
 	"bookshelf-web-api_gin_clean/api/usecases"
+	"fmt"
 )
 
 type PublisherRepository struct {
@@ -26,6 +27,20 @@ func (p *PublisherRepository) Create(publisher domain.Publisher) (*domain.Publis
 	err := p.Connection.Create(&publisher).HasError()
 	if err != nil {
 		return nil, err
+	}
+	return &publisher, nil
+}
+
+func (p *PublisherRepository) Find(filter map[string]interface{}) (*domain.Publisher, error) {
+	query := p.Connection.Where(filter)
+
+	var publisher = domain.Publisher{}
+	err := query.Bind(&publisher).HasError()
+	if gorm.IsRecordNotFoundError(err) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("Find Publisher: %s", err)
 	}
 	return &publisher, nil
 }

@@ -9,6 +9,7 @@ type publisherUseCase struct {
 type PublisherUseCase interface {
 	GetAllPublisher() (*domain.CountedPublishers, error)
 	CreatePublisher(createPublisher domain.Publisher) (*domain.Publisher, error)
+	GetPublisher(filter map[string]interface{}) (*domain.Publisher, error)
 }
 
 func NewPublisherUseCase(publisherRepo PublisherRepository) PublisherUseCase {
@@ -29,4 +30,8 @@ func (p *publisherUseCase) CreatePublisher(createPublisher domain.Publisher) (*d
 		return nil, err
 	}
 	return publisher, nil
+}
+
+func (p *publisherUseCase) GetPublisher(filter map[string]interface{}) (*domain.Publisher, error) {
+	return p.PublisherRepo.Find(filter)
 }
