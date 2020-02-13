@@ -3,6 +3,7 @@ package repositories
 import (
 	"bookshelf-web-api_gin_clean/api/usecases"
 	"bookshelf-web-api_gin_clean/api/domain"
+	"github.com/jinzhu/gorm"
 	"fmt"
 )
 

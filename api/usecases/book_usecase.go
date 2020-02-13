@@ -17,7 +17,7 @@ type BookUseCase interface {
 	CreateBook(createBook domain.Book) (*domain.Book, error)
 	DeleteBook(filter map[string]interface{}) error
 
-	ChangeStatus(filter map[string]interface{}) error
+	ChangeStatus(filter map[string]interface{}) (*domain.Book, error)
 	CountByName(filter map[string]interface{}, key string) (*domain.CountedNames, error)
 	CountByDate(filter map[string]interface{}, dateKey , dateType string) (*domain.CountedDates, error)
 	// StoreCategories() error
@@ -71,10 +71,10 @@ func (b *bookUseCase) DeleteBook(filter map[string]interface{}) (error) {
 	return nil
 }
 
-func (b *bookUseCase) ChangeStatus(filter map[string]interface{}) (error) {
+func (b *bookUseCase) ChangeStatus(filter map[string]interface{}) (*domain.Book, error) {
 	book, err := b.BookRepo.Find(filter)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	switch book.ReadState {
@@ -85,13 +85,13 @@ func (b *bookUseCase) ChangeStatus(filter map[string]interface{}) (error) {
 	case domain.ReadValue:
 		book.SetStartState()
 	default:
-		return errors.New("ChangeStatus: bad status")
+		return nil, errors.New("ChangeStatus: bad status")
 	}
 	err = b.BookRepo.Store(*book)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return book, nil
 }
 
 func containsName(s []domain.CountedName, name string) bool {

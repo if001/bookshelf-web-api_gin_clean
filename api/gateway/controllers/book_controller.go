@@ -356,13 +356,13 @@ func (b *bookController) ChangeBookStatus(c *gin.Context) {
 	usecases.ById(filter, bookId)
 	usecases.ByAccountId(filter, accountId)
 
-	err = b.UseCase.ChangeStatus(filter)
+	book, err := b.UseCase.ChangeStatus(filter)
 	if err != nil {
 		log.Println(err.Error())
 		internalServerErrorWithSentry(c, "ChangeBookStatus: ", err)
 		return
 	}
-	c.Status(http.StatusOK)
+	c.JSON(http.StatusOK, Response{Content: book})
 }
 
 func (b *bookController) DeleteBook(c *gin.Context) {
